@@ -31,14 +31,14 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/tvMaintainanceType"
+            android:id="@+id/tvMaintenanceType"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:fontFamily="@font/montserrat_light"
             android:text="TYPE"
             android:textColor="@color/text"
-            android:textSize="11sp"
+            android:textSize="9sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvRomName" />
@@ -59,6 +59,7 @@
             app:layout_constraintTop_toBottomOf="@+id/vDevider" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layHelpSection"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="25dp"
@@ -76,11 +77,14 @@
                 android:layout_marginStart="32dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="32dp"
+                android:layout_marginBottom="16dp"
                 android:fontFamily="@font/montserrat_bold"
                 android:text="INFO_HEADLINE"
                 android:textAlignment="viewStart"
+                android:textAllCaps="true"
                 android:textColor="@color/text"
-                android:textSize="18sp"
+                android:textSize="19sp"
+                app:layout_constraintBottom_toTopOf="@+id/btnInfoOne"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.502"
                 app:layout_constraintStart_toStartOf="parent"
@@ -90,7 +94,7 @@
                 android:id="@+id/btnInfoOne"
                 android:layout_width="210dp"
                 android:layout_height="49dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="19dp"
                 android:background="@drawable/button_shape"
                 android:backgroundTint="@color/button"
                 android:fontFamily="@font/montserrat"
@@ -145,7 +149,6 @@
                 android:layout_width="210dp"
                 android:layout_height="49dp"
                 android:layout_marginTop="16dp"
-                android:layout_marginBottom="30dp"
                 android:background="@drawable/button_shape"
                 android:backgroundTint="@color/button"
                 android:fontFamily="@font/montserrat"
@@ -172,7 +175,7 @@
             android:background="@drawable/layout_green"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvMaintainanceType">
+            app:layout_constraintTop_toBottomOf="@+id/tvMaintenanceType">
 
             <TextView
                 android:id="@+id/tvVersion"
@@ -200,8 +203,9 @@
                 android:fontFamily="@font/montserrat_bold"
                 android:text="CURRENT_STATE"
                 android:textAlignment="viewStart"
+                android:textAllCaps="true"
                 android:textColor="@color/text"
-                android:textSize="18sp"
+                android:textSize="19sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.502"
                 app:layout_constraintStart_toStartOf="parent"
@@ -266,7 +270,7 @@
             android:id="@+id/tvLoading"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="24dp"
             android:alpha="0.7"
             android:fontFamily="@font/montserrat_light"
             android:text="Beaming data from space..."
