@@ -13,7 +13,7 @@
         android:id="@+id/clMain"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone">
+        android:visibility="visible">
 
         <TextView
             android:id="@+id/tvAppName"
@@ -96,6 +96,7 @@
                 android:fontFamily="@font/montserrat"
                 android:text="BUTTON one"
                 android:textAllCaps="true"
+                android:textColor="@color/text"
                 android:textSize="13sp"
                 android:visibility="visible"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -113,6 +114,7 @@
                 android:fontFamily="@font/montserrat"
                 android:text="BUTTON two"
                 android:textAllCaps="true"
+                android:textColor="@color/text"
                 android:textSize="13sp"
                 android:visibility="visible"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -130,6 +132,7 @@
                 android:fontFamily="@font/montserrat"
                 android:text="BUTTON three"
                 android:textAllCaps="true"
+                android:textColor="@color/text"
                 android:textSize="13sp"
                 android:visibility="visible"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -148,6 +151,7 @@
                 android:fontFamily="@font/montserrat"
                 android:text="BUTTON four"
                 android:textAllCaps="true"
+                android:textColor="@color/text"
                 android:textSize="13sp"
                 android:visibility="visible"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -211,6 +215,7 @@
                 android:background="@drawable/button_shape"
                 android:backgroundTint="@color/button"
                 android:fontFamily="@font/montserrat"
+                android:foregroundTint="@color/text"
                 android:text="update now"
                 android:textAllCaps="true"
                 android:textSize="13sp"
@@ -219,7 +224,8 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvVersion"
-                app:layout_constraintVertical_bias="0.0" />
+                app:layout_constraintVertical_bias="0.0"
+                android:textColor="@color/text" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -252,6 +258,7 @@
         android:id="@+id/clSplitScreen"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:visibility="gone"
         tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="-16dp">
 
@@ -263,7 +270,7 @@
             android:alpha="0.7"
             android:fontFamily="@font/montserrat_light"
             android:text="Beaming data from space..."
-            android:textAlignment="viewStart"
+            android:textAlignment="center"
             android:textAllCaps="false"
             android:textColor="@color/text"
             app:layout_constraintEnd_toEndOf="parent"

@@ -8,6 +8,7 @@
         <item name="background">@color/bg</item>
         <item name="backgroundTint">@color/bg</item>
         <item name="android:windowBackground">@color/bg</item>
+        <item name="android:textColor">@color/text</item>
     </style>
 
 </resources>
