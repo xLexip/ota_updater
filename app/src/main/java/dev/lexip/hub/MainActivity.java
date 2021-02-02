@@ -2,9 +2,13 @@ package dev.lexip.hub;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,6 +25,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Switch to Split Screen
+        findViewById(R.id.clSplitScreen).setVisibility(View.VISIBLE);
+        findViewById(R.id.clMain).setVisibility(View.INVISIBLE);
+
 
         // Remote Config: Initialize Firebase Remote Config
         FirebaseRemoteConfig mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
@@ -46,6 +55,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-
+        // Switch to Main Screen after delay
+        final Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                findViewById(R.id.clSplitScreen).setVisibility(View.INVISIBLE);
+                findViewById(R.id.clMain).setVisibility(View.VISIBLE);            }
+        }, 1500);
     }
 }
