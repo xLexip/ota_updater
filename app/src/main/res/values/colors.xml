@@ -5,9 +5,14 @@
     <color name="orange_95">#fff26500</color>
     <color name="blue_30">#ff2c384d</color>
     <color name="blue_50">#ff495d80</color>
+    <color name="green_40">#ff00662a</color>
     <color name="black">#ff000000</color>
     <color name="white">#ffffffff</color>
 
     <color name="bg">#ff0f131a</color> # blue_10
+    <color name="bg_dark">#ff0a0d12</color> # blue_7
+
+    <color name="text">#ffffffff</color> # blue_10
+    <color name="button">#0accccff</color> # blue_10
 
 </resources>

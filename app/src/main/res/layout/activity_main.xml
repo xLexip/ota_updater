@@ -6,24 +6,246 @@
     android:layout_height="match_parent"
     android:background="@color/bg"
     android:forceDarkAllowed="true"
+    android:visibility="visible"
     tools:context=".MainActivity">
 
-    <LinearLayout
-        android:layout_width="411dp"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView2"></LinearLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clMain"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="visible">
 
-    <ImageView
-        android:id="@+id/imageView2"
-        android:layout_width="219dp"
-        android:layout_height="59dp"
-        android:layout_marginTop="40dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/lexipshub" />
+        <TextView
+            android:id="@+id/tvAppName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="@font/montserrat_bold"
+            android:text="APP_NAME"
+            android:textAllCaps="true"
+            android:textColor="@color/text"
+            android:textSize="25sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.503"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvMaintainanceType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="@font/montserrat_light"
+            android:text="TYPE"
+            android:textColor="@color/text"
+            android:textSize="11sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvRomName" />
+
+        <TextView
+            android:id="@+id/tvRomName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="25dp"
+            android:alpha="0.9"
+            android:fontFamily="@font/montserrat_bold"
+            android:text="ROM_NAME"
+            android:textAlignment="center"
+            android:textColor="@color/text"
+            android:textSize="25sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/vDevider" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="25dp"
+            android:layout_marginTop="35dp"
+            android:layout_marginEnd="25dp"
+            android:background="@drawable/layout_info_section"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/layUpdateSection">
+
+            <TextView
+                android:id="@+id/tvInfoHeadline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="32dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="32dp"
+                android:fontFamily="@font/montserrat_bold"
+                android:text="INFO_HEADLINE"
+                android:textAlignment="viewStart"
+                android:textColor="@color/text"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.502"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/btnInfoOne"
+                android:layout_width="210dp"
+                android:layout_height="49dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/button_shape"
+                android:backgroundTint="@color/button"
+                android:fontFamily="@font/montserrat"
+                android:text="BUTTON one"
+                android:textAllCaps="true"
+                android:textSize="13sp"
+                android:visibility="visible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.495"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvInfoHeadline" />
+
+            <Button
+                android:id="@+id/btnInfoTwo"
+                android:layout_width="210dp"
+                android:layout_height="49dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/button_shape"
+                android:backgroundTint="@color/button"
+                android:fontFamily="@font/montserrat"
+                android:text="BUTTON two"
+                android:textAllCaps="true"
+                android:textSize="13sp"
+                android:visibility="visible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.493"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/btnInfoOne" />
+
+            <Button
+                android:id="@+id/btnInfoThree"
+                android:layout_width="210dp"
+                android:layout_height="49dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/button_shape"
+                android:backgroundTint="@color/button"
+                android:fontFamily="@font/montserrat"
+                android:text="BUTTON three"
+                android:textAllCaps="true"
+                android:textSize="13sp"
+                android:visibility="visible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.493"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/btnInfoTwo" />
+
+            <Button
+                android:id="@+id/btnInfoFour"
+                android:layout_width="210dp"
+                android:layout_height="49dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="30dp"
+                android:background="@drawable/button_shape"
+                android:backgroundTint="@color/button"
+                android:fontFamily="@font/montserrat"
+                android:text="BUTTON four"
+                android:textAllCaps="true"
+                android:textSize="13sp"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.496"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/btnInfoThree" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layUpdateSection"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="25dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="25dp"
+            android:background="@drawable/layout_update_section"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvMaintainanceType">
+
+            <TextView
+                android:id="@+id/tvVersion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="12dp"
+                android:fontFamily="@font/montserrat_light"
+                android:text="VERSION"
+                android:textColor="@color/text"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toTopOf="@+id/btnUpdate"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.501"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvCurrentState" />
+
+            <TextView
+                android:id="@+id/tvCurrentState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="32dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="32dp"
+                android:fontFamily="@font/montserrat_bold"
+                android:text="CURRENT_STATE"
+                android:textAlignment="viewStart"
+                android:textColor="@color/text"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.502"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/btnUpdate"
+                android:layout_width="152dp"
+                android:layout_height="45dp"
+                android:layout_marginBottom="18dp"
+                android:background="@drawable/button_shape"
+                android:backgroundTint="@color/button"
+                android:fontFamily="@font/montserrat"
+                android:text="update now"
+                android:textAllCaps="true"
+                android:textSize="13sp"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvVersion"
+                app:layout_constraintVertical_bias="0.0" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <View
+            android:id="@+id/vDevider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="15dp"
+            android:alpha="0.5"
+            android:background="@color/text"
+            app:layout_constraintTop_toBottomOf="@+id/tvAppName" />
+
+        <TextView
+            android:id="@+id/tvAppVersion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:alpha="0.1"
+            android:fontFamily="@font/montserrat_light"
+            android:text="vX.XXXXXXXX  -  github.com/xLexip/ota_updater"
+            android:textAllCaps="false"
+            android:textColor="@color/text"
+            android:textSize="10sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
