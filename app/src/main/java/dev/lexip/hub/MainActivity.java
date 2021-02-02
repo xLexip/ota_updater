@@ -29,11 +29,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
 
         ((TextView)findViewById(R.id.tvLoading)).setText("Beaming data from space...");
         setLoadingScreen(true);
@@ -46,6 +41,13 @@ public class MainActivity extends AppCompatActivity {
         mFirebaseRemoteConfig.setConfigSettingsAsync(configSettings);
         mFirebaseRemoteConfig.setDefaultsAsync(R.xml.remote_config_defaults);
         mFirebaseRemoteConfig.fetch(10);
+
+        loadConfig();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
 
         // Require Internet Connection: Start Thread to make sure client stays connected to the internet
         new Thread(){
@@ -65,8 +67,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }.start();
-
-        loadConfig();
     }
 
     /**
