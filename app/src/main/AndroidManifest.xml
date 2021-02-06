@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="dev.lexip.hub">
 
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
@@ -25,23 +24,24 @@
             </intent-filter>
         </activity>
 
-        <!-- Set custom default icon. This is used when no icon is set for incoming notification messages.
-         See README(https://goo.gl/l4GJaQ) for more. -->
+        <!-- FCM Notification Icon -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_notify" />
-        <!-- Set color used with incoming notification messages. This is used when no color is set for the incoming
-             notification message. See README(https://goo.gl/6BKBk7) for more. -->
+
+        <!-- FCM Notification LED -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/green_android" />
 
+        <!-- Autostart for FCM -->
         <receiver android:name=".Autostart">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
 
+        <!-- FCM Service -->
         <service
             android:name=".FirebaseMessagingService"
             android:exported="false">

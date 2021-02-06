@@ -8,8 +8,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -93,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public void loadConfig(boolean pIninial){
         if(!getNetworkState()) {
+            ((TextView)findViewById(R.id.tvLoading)).setText("Whoops!"+System.getProperty("line.separator")+"There's not even a single bit of internet over here."+System.getProperty("line.separator")+"Please check your connection.");
             setLoadingScreen(true);
             return;
         }
@@ -236,11 +235,9 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
-
     }
 
     public void setLoadingScreen(boolean pState){
-        ((TextView)findViewById(R.id.tvLoading)).setText("Whoops!"+System.getProperty("line.separator")+"There's not even a single bit of internet over here."+System.getProperty("line.separator")+"Please check your connection.");
         if(pState){
             findViewById(R.id.clMain).setVisibility(View.GONE);
             findViewById(R.id.clSplitScreen).setVisibility(View.VISIBLE);
@@ -259,17 +256,14 @@ public class MainActivity extends AppCompatActivity {
             return false;
     }
 
-
     public String getSystemProperty(String key) {
         String value = null;
-
         try {
             value = (String) Class.forName("android.os.SystemProperties")
                     .getMethod("get", String.class).invoke(null, key);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return value;
     }
 }
