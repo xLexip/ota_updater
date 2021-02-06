@@ -45,11 +45,11 @@ public class MainActivity extends AppCompatActivity {
         // Remote Config: Initialize Firebase Remote Config
         mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
         FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
-                .setMinimumFetchIntervalInSeconds(3500)
+                .setMinimumFetchIntervalInSeconds(1000)
                 .build();
         mFirebaseRemoteConfig.setConfigSettingsAsync(configSettings);
         mFirebaseRemoteConfig.setDefaultsAsync(R.xml.remote_config_defaults);
-        mFirebaseRemoteConfig.fetch(10);
+        mFirebaseRemoteConfig.fetch(1);
 
         ((TextView) findViewById(R.id.tvAppVersion)).setText("v"+BuildConfig.VERSION_NAME+"  -  github.com/xLexip/ota_updater");
         loadConfig(true);
