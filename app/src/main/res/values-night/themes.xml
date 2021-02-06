@@ -2,7 +2,7 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/orange_50</item>
+        <item name="colorPrimary">@color/button</item>
         <item name="colorPrimaryDark">@color/bg</item>
         <item name="colorAccent">@color/blue_30</item>
         <item name="background">@color/bg</item>
