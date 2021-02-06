@@ -16,6 +16,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -144,6 +145,17 @@ public class MainActivity extends AppCompatActivity {
                                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("cheeseburger_download"))));
                                 }
                             });
+
+                            // Haptic Feedback
+                            new Thread(){
+                                public void run(){
+                                    ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(1);
+                                    try {
+                                        Thread.sleep(110);
+                                    } catch (InterruptedException e) {}
+                                    ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(1);
+                                }
+                            }.start();
                         }
 
                         // Update UI
