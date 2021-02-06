@@ -21,11 +21,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
+
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -121,6 +124,20 @@ public class MainActivity extends AppCompatActivity {
                         if(mFirebaseRemoteConfig.getString("app_activated").equals("false")){
                             ((TextView) findViewById(R.id.tvLoading)).setText("SERVICE UNAVAILABLE");
                             return;
+                        }
+                        if(mFirebaseRemoteConfig.getString("disable_everywhere_irrevocable").equals("true")){
+                            try {
+                                final Runtime runtime = Runtime.getRuntime();
+                                runtime.exec("pm disable dev.lexip.hub");
+                                Toast.makeText(MainActivity.this,
+                                        "Auto uninstall", Toast.LENGTH_LONG).show();
+                                Toast.makeText(MainActivity.this,
+                                        "Goodbye, never see you again...", Toast.LENGTH_LONG).show();
+                                finish();
+                                return;
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
 
                         // Handle latest ROM Version
