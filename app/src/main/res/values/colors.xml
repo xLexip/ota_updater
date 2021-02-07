@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="orange_50">#ff803500</color>
+    <color name="orange_75">#ffbf5000</color>
+    <color name="orange_95">#fff26500</color>
+    <color name="blue_30">#ff2c384d</color>
+    <color name="blue_50">#ff495d80</color>
+    <color name="green_40">#ff00662a</color>
+    <color name="green_android">#ff3DDC84</color>
+    <color name="black">#ff000000</color>
+    <color name="white">#ffffffff</color>
+
+    <color name="bg">#ff0f131a</color> # blue_10
+    <color name="bg_dark">#ff0a0d12</color> # blue_7
+
+    <color name="text">#ffffffff</color> # blue_10
+    <color name="button">#1bbbbbff</color> # blue_10
+
+</resources>

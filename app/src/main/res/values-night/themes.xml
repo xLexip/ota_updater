@@ -1,0 +1,14 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/button</item>
+        <item name="colorPrimaryDark">@color/bg</item>
+        <item name="colorAccent">@color/blue_30</item>
+        <item name="background">@color/bg</item>
+        <item name="backgroundTint">@color/bg</item>
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:textColor">@color/text</item>
+    </style>
+
+</resources>
