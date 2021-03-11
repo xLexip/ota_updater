@@ -192,8 +192,12 @@ public class UpdateActivity extends AppCompatActivity {
                                 Thread.sleep(20000);
                                 UpdateActivity.this.runOnUiThread(new Runnable() {
                                     public void run() {
-                                        ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(10);
+                                        ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(200);
                                         Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 10 seconds...",
+                                                Toast.LENGTH_LONG).show();
+                                        Toast.makeText((Context) UpdateActivity.this, "You may need to enter ypur pincode or pattern to decrypt and update.",
+                                                Toast.LENGTH_LONG).show();
+                                        Toast.makeText((Context) UpdateActivity.this, "You may need to enter ypur pincode or pattern to decrypt and update.",
                                                 Toast.LENGTH_LONG).show();
                                     }
                                 });
