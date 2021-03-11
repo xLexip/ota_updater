@@ -178,24 +178,26 @@ public class UpdateActivity extends AppCompatActivity {
 
                             UpdateActivity.this.runOnUiThread(new Runnable() {
                                 public void run() {
-                                    try {
-                                        ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
-                                        ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
+                                    ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
+                                    ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
 
-                                        ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(2500);
-                                        Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 30 seconds...",
-                                                Toast.LENGTH_LONG).show();
-                                        Thread.sleep(9000);
-                                        Thread.sleep(9000);
-                                        Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 10 seconds...",
-                                                Toast.LENGTH_LONG).show();
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
+                                    ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(2500);
+                                    Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 30 seconds...",
+                                            Toast.LENGTH_LONG).show();
+                                    Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 30 seconds...",
+                                            Toast.LENGTH_LONG).show();
                                 }
                             });
                             try {
-                                Thread.sleep(32000);
+                                Thread.sleep(20000);
+                                UpdateActivity.this.runOnUiThread(new Runnable() {
+                                    public void run() {
+                                        ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(10);
+                                        Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 10 seconds...",
+                                                Toast.LENGTH_LONG).show();
+                                    }
+                                });
+                                Thread.sleep(9900);
                                 flash();
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
