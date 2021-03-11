@@ -155,10 +155,8 @@ public class MainActivity extends AppCompatActivity {
                             ((Button) findViewById(R.id.btnUpdate)).setVisibility(View.VISIBLE);
                             ((Button) findViewById(R.id.btnUpdate)).setOnClickListener(new View.OnClickListener() {
                                 public void onClick(View v) {
-                                    if(getSystemProperty("org.pixelexperience.device").equals("dumpling"))
-                                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("dumpling_download"))));
-                                    else if(getSystemProperty("org.pixelexperience.device").equals("cheeseburger"))
-                                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("cheeseburger_download"))));
+                                    Intent intent = new Intent(MainActivity.this, UpdateActivity.class);
+                                    startActivity(intent);
                                 }
                             });
 
