@@ -155,10 +155,8 @@ public class MainActivity extends AppCompatActivity {
                             ((Button) findViewById(R.id.btnUpdate)).setVisibility(View.VISIBLE);
                             ((Button) findViewById(R.id.btnUpdate)).setOnClickListener(new View.OnClickListener() {
                                 public void onClick(View v) {
-                                    if(getSystemProperty("org.pixelexperience.device").equals("dumpling"))
-                                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("dumpling_download"))));
-                                    else if(getSystemProperty("org.pixelexperience.device").equals("cheeseburger"))
-                                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("cheeseburger_download"))));
+                                    Intent intent = new Intent(MainActivity.this, UpdateActivity.class);
+                                    startActivity(intent);
                                 }
                             });
 
@@ -205,22 +203,54 @@ public class MainActivity extends AppCompatActivity {
 
                         ((Button) findViewById(R.id.btnInfoOne)).setOnClickListener(new View.OnClickListener() {
                             public void onClick(View v) {
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("helpbtn1_url"))));
+                                if(mFirebaseRemoteConfig.getString("helpbtn1_url").contains("telegra.ph")) {
+                                    Intent intent = new Intent(MainActivity.this, WebActivity.class);
+                                    Bundle b = new Bundle();
+                                    b.putString("url", mFirebaseRemoteConfig.getString("helpbtn1_url"));
+                                    intent.putExtras(b);
+                                    startActivity(intent);
+                                } else {
+                                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("helpbtn1_url"))));
+                                }
                             }
                         });
                         ((Button) findViewById(R.id.btnInfoTwo)).setOnClickListener(new View.OnClickListener() {
                             public void onClick(View v) {
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("helpbtn2_url"))));
+                                if(mFirebaseRemoteConfig.getString("helpbtn2_url").contains("telegra.ph")) {
+                                    Intent intent = new Intent(MainActivity.this, WebActivity.class);
+                                    Bundle b = new Bundle();
+                                    b.putString("url", mFirebaseRemoteConfig.getString("helpbtn2_url"));
+                                    intent.putExtras(b);
+                                    startActivity(intent);
+                                } else {
+                                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("helpbtn2_url"))));
+                                }
                             }
                         });
                         ((Button) findViewById(R.id.btnInfoThree)).setOnClickListener(new View.OnClickListener() {
                             public void onClick(View v) {
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("helpbtn3_url"))));
+                                if(mFirebaseRemoteConfig.getString("helpbtn3_url").contains("telegra.ph")) {
+                                    Intent intent = new Intent(MainActivity.this, WebActivity.class);
+                                    Bundle b = new Bundle();
+                                    b.putString("url", mFirebaseRemoteConfig.getString("helpbtn3_url"));
+                                    intent.putExtras(b);
+                                    startActivity(intent);
+                                } else {
+                                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("helpbtn3_url"))));
+                                }
                             }
                         });
                         ((Button) findViewById(R.id.btnInfoFour)).setOnClickListener(new View.OnClickListener() {
                             public void onClick(View v) {
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("helpbtn4_url"))));
+                                if(mFirebaseRemoteConfig.getString("helpbtn4_url").contains("telegra.ph")) {
+                                    Intent intent = new Intent(MainActivity.this, WebActivity.class);
+                                    Bundle b = new Bundle();
+                                    b.putString("url", mFirebaseRemoteConfig.getString("helpbtn4_url"));
+                                    intent.putExtras(b);
+                                    startActivity(intent);
+                                } else {
+                                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("helpbtn4_url"))));
+                                }
                             }
                         });
 

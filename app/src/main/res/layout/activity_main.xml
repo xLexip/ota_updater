@@ -213,14 +213,14 @@
 
             <Button
                 android:id="@+id/btnUpdate"
-                android:layout_width="174dp"
-                android:layout_height="41dp"
+                android:layout_width="121dp"
+                android:layout_height="45dp"
                 android:layout_marginBottom="18dp"
                 android:background="@drawable/button_shape"
                 android:backgroundTint="@color/button"
                 android:fontFamily="@font/montserrat"
                 android:foregroundTint="@color/text"
-                android:text="download now"
+                android:text="install"
                 android:textAllCaps="true"
                 android:textColor="@color/text"
                 android:textSize="13sp"
