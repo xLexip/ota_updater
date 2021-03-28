@@ -148,6 +148,14 @@ public class UpdateActivity extends AppCompatActivity {
                     Toast.makeText(UpdateActivity.this, "This can take a while, depending on your location and connection. The device will automatically reboot after downloading.",
                             Toast.LENGTH_LONG).show();
 
+                    // Disable Battery Saver
+                    try {
+                        Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","settings put global low_power 0\n" +
+                                "am broadcast -a android.os.action.POWER_SAVE_MODE_CHANGED --ez mode false\n"});
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                     new Thread(){
                         public void run(){
                             new DownloadFileFromURL().execute(updateURL);
