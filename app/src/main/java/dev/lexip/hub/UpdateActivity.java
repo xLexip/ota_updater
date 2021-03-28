@@ -125,8 +125,14 @@ public class UpdateActivity extends AppCompatActivity {
                     flash();
                     return;
                 }
-                ((Button) findViewById(R.id.btnFlash)).setVisibility(View.INVISIBLE);
+                else if(((Button) findViewById(R.id.btnFlash)).getText().equals("CANCEL UPDATE")){
+                    Intent intent = new Intent(UpdateActivity.this, MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                    return;
+                }
 
+                ((Button) findViewById(R.id.btnFlash)).setVisibility(View.INVISIBLE);
                 ((Switch) findViewById(R.id.switchAutoInstall)).setActivated(false);
                 ((Switch) findViewById(R.id.switchKeepRoot)).setActivated(false);
 
@@ -155,6 +161,23 @@ public class UpdateActivity extends AppCompatActivity {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+
+                    new Thread() {
+                        public void run() {
+                            try {
+                                Thread.sleep(19500);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            UpdateActivity.this.runOnUiThread(new Runnable() {
+                                public void run() {
+                                    ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
+                                    ((Button) findViewById(R.id.btnFlash)).setText("CANCEL UPDATE");
+                                }
+                            });
+                        }
+                    }.start();
+
 
                     new Thread(){
                         public void run(){
