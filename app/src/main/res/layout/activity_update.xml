@@ -24,6 +24,24 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/switchKeepRoot" />
 
+    <Button
+        android:id="@+id/btnChangelog"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/button_shape"
+        android:backgroundTint="@color/button"
+        android:fontFamily="@font/montserrat"
+        android:foregroundTint="@color/text"
+        android:text="WHAT'S NEW?"
+        android:textAllCaps="true"
+        android:textColor="@color/text"
+        android:textSize="13sp"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnFlash" />
+
     <TextView
         android:id="@+id/tvAppName"
         android:layout_width="wrap_content"

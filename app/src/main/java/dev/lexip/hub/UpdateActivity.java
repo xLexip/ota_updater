@@ -64,6 +64,16 @@ public class UpdateActivity extends AppCompatActivity {
         context = UpdateActivity.this;
         ((Switch) findViewById(R.id.switchKeepRoot)).setChecked(false);
         ((Switch) findViewById(R.id.switchKeepRoot)).setVisibility(View.GONE);
+
+        ((Button) findViewById(R.id.btnChangelog)).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(UpdateActivity.this, WebActivity.class);
+                Bundle b = new Bundle();
+                b.putString("url", "https://telegra.ph/Changelog-12-14");
+                intent.putExtras(b);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -133,6 +143,7 @@ public class UpdateActivity extends AppCompatActivity {
                 }
 
                 ((Button) findViewById(R.id.btnFlash)).setVisibility(View.INVISIBLE);
+                ((Button) findViewById(R.id.btnChangelog)).setVisibility(View.INVISIBLE);
                 ((Switch) findViewById(R.id.switchAutoInstall)).setActivated(false);
                 ((Switch) findViewById(R.id.switchKeepRoot)).setActivated(false);
 
@@ -173,11 +184,11 @@ public class UpdateActivity extends AppCompatActivity {
                                 public void run() {
                                     ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
                                     ((Button) findViewById(R.id.btnFlash)).setText("CANCEL UPDATE");
+                                    ((Button) findViewById(R.id.btnChangelog)).setVisibility(View.VISIBLE);
                                 }
                             });
                         }
                     }.start();
-
 
                     new Thread(){
                         public void run(){
