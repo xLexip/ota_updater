@@ -14,8 +14,8 @@ android {
         applicationId "dev.lexip.hub"
         minSdkVersion 30
         targetSdkVersion 30
-        versionCode 2
-        versionName '1.1.202103'
+        versionCode 3
+        versionName '1.2.202104'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
