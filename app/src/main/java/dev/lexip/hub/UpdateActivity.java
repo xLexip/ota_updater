@@ -16,7 +16,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ProgressBar;
+import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,18 +28,22 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLConnection;
+import java.util.Arrays;
+import java.util.Scanner;
+import java.util.Stack;
 
 public class UpdateActivity extends AppCompatActivity {
 
     private Context context;
     private boolean downloading = false;
     private String updateURL;
+    private NotificationChannel channel;
+    private BroadcastReceiver receiver;
+    private Stack<Long> downloads;
+    private String config;
 
 
     @Override
@@ -53,12 +57,21 @@ public class UpdateActivity extends AppCompatActivity {
         ((Switch) findViewById(R.id.switchFlashMagisk)).setVisibility(View.VISIBLE);
 
         // Delete old update files
-        if(new File("rom-package.zip").exists())
-            new File("rom-package.zip").delete();
-        if(new File("magisk.zip").exists())
-            new File("magisk.zip").delete();
-        if(new File("unknown.zip").exists())
-            new File("unknown.zip").delete();
+        File dir = new File(Environment.DIRECTORY_DOWNLOADS+"hub");
+        if (dir.isDirectory())
+        {
+            String[] children = dir.list();
+            for (int i = 0; i < children.length; i++)
+            {
+                new File(dir, children[i]).delete();
+            }
+        }
+
+        // Create the NotificationChannel
+        channel = new NotificationChannel("Updating", "System Update", NotificationManager.IMPORTANCE_HIGH);
+        channel.setDescription("Processing a system update.");
+
+        refreshConfig();
     }
 
     @Override
@@ -90,7 +103,7 @@ public class UpdateActivity extends AppCompatActivity {
                     }
                 });
 
-        // Declare OnClickListeners
+        // Declare Listeners
         ((Button) findViewById(R.id.btnChangelog)).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Intent intent = new Intent(UpdateActivity.this, WebActivity.class);
@@ -98,6 +111,29 @@ public class UpdateActivity extends AppCompatActivity {
                 b.putString("url", "https://telegra.ph/Changelog-12-14");
                 intent.putExtras(b);
                 startActivity(intent);
+            }
+        });
+
+        ((Switch)findViewById(R.id.switchFlashMagisk)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                refreshConfig();
+                try {
+                    if(isChecked && config.contains("flash_magisk=false")) {
+                        String[] tmp = config.split("flash_magisk=false");
+                        FileWriter writer = null;
+                        writer = new FileWriter("config");
+                        writer.write(Arrays.toString(tmp)+"flash_magisk=true");
+                        writer.close();
+                    } else if(!isChecked && config.contains("flash_magisk=true")){
+                        String[] tmp = config.split("flash_magisk=true");
+                        FileWriter writer = null;
+                        writer = new FileWriter("config");
+                        writer.write(Arrays.toString(tmp)+"flash_magisk=false");
+                        writer.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -242,7 +278,8 @@ public class UpdateActivity extends AppCompatActivity {
 
             FileWriter myWriter = new FileWriter("/cache/recovery/command");
             myWriter.write("boot-recovery\n--update_package=/data/data/dev.lexip.hub/files/rom-package.zip\n");
-            if(((Switch) findViewById(R.id.switchFlashMagisk)).isChecked())
+            refreshConfig();
+            if(config.contains("flash_magisk=true"))
                 myWriter.write("--update_package=/data/data/dev.lexip.hub/files/magisk.zip\n");
             myWriter.write("--wipe_cache\nreboot");
             myWriter.close();
@@ -335,5 +372,31 @@ public class UpdateActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         return value;
+    }
+
+    public void refreshConfig() {
+        try {
+            if (!new File("config").exists()) {
+                FileWriter writer = null;
+                writer = new FileWriter("config");
+                writer.write("flash_magisk=true");
+                writer.close();
+
+            } else {
+                File myObj = new File("config");
+                Scanner reader = new Scanner(myObj);
+                while (reader.hasNextLine()) {
+                    config += reader.nextLine();
+                }
+                reader.close();
+
+                if (!config.contains("flash_magisk")) {
+                    FileWriter writer = null;
+                    writer = new FileWriter("config");
+                    writer.write("flash_magisk=true");
+                    writer.close();
+                }
+            }
+        } catch(IOException e) {}
     }
 }
