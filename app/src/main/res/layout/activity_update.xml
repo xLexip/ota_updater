@@ -57,7 +57,7 @@
         android:text="FLASH MAGISK "
         android:textAlignment="textEnd"
         android:textColor="@color/text"
-        android:textSize="9dp"
+        android:textSize="7dp"
         android:thumb="@drawable/thumb_selector"
         android:trackTint="@color/black"
         android:visibility="visible"
@@ -119,20 +119,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/vDevider" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="370dp"
-        android:layout_height="10dp"
-        android:layout_marginBottom="4dp"
-        android:foregroundTint="@color/orange_50"
-        android:progress="100"
-        android:progressTint="@color/orange_75"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.478"
-        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/imageView"

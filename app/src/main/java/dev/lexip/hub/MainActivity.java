@@ -21,6 +21,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.BuildConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
@@ -33,10 +34,12 @@ public class MainActivity extends AppCompatActivity {
     private String buildNumber;
     private int clientRomVersion;
     private int latestRomVersion;
+    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        context = this;
         setContentView(R.layout.activity_main);
 
         ((TextView)findViewById(R.id.tvLoading)).setText("Beaming data from space...");
@@ -51,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
         mFirebaseRemoteConfig.setDefaultsAsync(R.xml.remote_config_defaults);
         mFirebaseRemoteConfig.fetch(1);
 
-        ((TextView) findViewById(R.id.tvAppVersion)).setText("v"+BuildConfig.VERSION_NAME+"  -  github.com/xLexip/ota_updater");
+        ((TextView) findViewById(R.id.tvAppVersion)).setText("v"+ BuildConfig.VERSION_NAME+"  -  github.com/xLexip/ota_updater");
         loadConfig(true);
     }
 

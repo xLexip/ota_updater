@@ -2,16 +2,21 @@ package dev.lexip.hub;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 
 import android.app.AlarmManager;
+import android.app.DownloadManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.PowerManager;
-import android.os.Vibrator;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
@@ -26,9 +31,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
@@ -42,36 +45,36 @@ public class UpdateActivity extends AppCompatActivity {
     private String updateURL;
     private NotificationChannel channel;
     private BroadcastReceiver receiver;
-    private Stack<Long> downloads;
+    private Stack downloads;
     private String config;
+    private DownloadManager downloadmanager;
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if (getIntent().hasExtra("flash")) {
+            flash();
+            return;
+        }
+
         setContentView(R.layout.activity_update);
         context = UpdateActivity.this;
+        downloads = new Stack();
 
         ((Switch) findViewById(R.id.switchFlashMagisk)).setChecked(true);
         ((Switch) findViewById(R.id.switchFlashMagisk)).setVisibility(View.VISIBLE);
 
-        // Delete old update files
-        File dir = new File(Environment.DIRECTORY_DOWNLOADS+"hub");
-        if (dir.isDirectory())
-        {
-            String[] children = dir.list();
-            for (int i = 0; i < children.length; i++)
-            {
-                new File(dir, children[i]).delete();
-            }
-        }
+        deleteFiles();
 
         // Create the NotificationChannel
         channel = new NotificationChannel("Updating", "System Update", NotificationManager.IMPORTANCE_HIGH);
         channel.setDescription("Processing a system update.");
 
         refreshConfig();
+        if(config.contains("flash_magisk=false"))
+            ((Switch)findViewById(R.id.switchFlashMagisk)).setChecked(false);
     }
 
     @Override
@@ -121,13 +124,13 @@ public class UpdateActivity extends AppCompatActivity {
                     if(isChecked && config.contains("flash_magisk=false")) {
                         String[] tmp = config.split("flash_magisk=false");
                         FileWriter writer = null;
-                        writer = new FileWriter("config");
+                        writer = new FileWriter("/data/data/dev.lexip.hub/files/config");
                         writer.write(Arrays.toString(tmp)+"flash_magisk=true");
                         writer.close();
                     } else if(!isChecked && config.contains("flash_magisk=true")){
                         String[] tmp = config.split("flash_magisk=true");
                         FileWriter writer = null;
-                        writer = new FileWriter("config");
+                        writer = new FileWriter("/data/data/dev.lexip.hub/files/config");
                         writer.write(Arrays.toString(tmp)+"flash_magisk=false");
                         writer.close();
                     }
@@ -145,6 +148,12 @@ public class UpdateActivity extends AppCompatActivity {
                     return;
                 }
                 else if(((Button) findViewById(R.id.btnFlash)).getText().equals("CANCEL UPDATE")){
+                    // Cancel Downloads
+                    while(!downloads.isEmpty()){
+                        downloadmanager.remove(((long)downloads.pop()));
+                    }
+                    deleteFiles();
+                    // Restart the app
                     Intent mStartActivity = new Intent(context, MainActivity.class);
                     int mPendingIntentId = 123456;
                     PendingIntent mPendingIntent = PendingIntent.getActivity(context, mPendingIntentId,    mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -164,33 +173,14 @@ public class UpdateActivity extends AppCompatActivity {
                     startActivity(intent);
                 }
 
-                ((Button) findViewById(R.id.btnFlash)).setVisibility(View.INVISIBLE);
-                ((Switch) findViewById(R.id.switchFlashMagisk)).setVisibility(View.INVISIBLE);
-
                 if(getSystemProperty("org.pixelexperience.device").equals("dumpling"))
                     updateURL =  mFirebaseRemoteConfig.getString("dumpling_download");
                 else if(getSystemProperty("org.pixelexperience.device").equals("cheeseburger"))
                     updateURL =  mFirebaseRemoteConfig.getString("cheeseburger_download");
 
-                Toast.makeText(UpdateActivity.this, "Downloading update files...",
-                        Toast.LENGTH_LONG).show();
-                Toast.makeText(UpdateActivity.this, "Downloading update files...",
-                        Toast.LENGTH_LONG).show();
-                Toast.makeText(UpdateActivity.this, "This can take a while, your device will automatically reboot after downloading.",
-                        Toast.LENGTH_LONG).show();
-                Toast.makeText(UpdateActivity.this, "This can take a while, your device will automatically reboot after downloading.",
-                        Toast.LENGTH_LONG).show();
-                Toast.makeText(UpdateActivity.this, "This can take a while, your device will automatically reboot after downloading.",
-                        Toast.LENGTH_LONG).show();
 
-                // Show Magisk Switch and cancelling option after the toasts have been shown
                 new Thread() {
                     public void run() {
-                        try {
-                            Thread.sleep(19500);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
                         UpdateActivity.this.runOnUiThread(new Runnable() {
                             public void run() {
                                 ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
@@ -201,68 +191,48 @@ public class UpdateActivity extends AppCompatActivity {
                     }
                 }.start();
 
-                // Download Thread
-                new Thread(){
-                    public void run(){
-                        new DownloadFileFromURL().execute(updateURL);
-
-                        while(downloading) {
+                // Download update files
+                downloadFile(updateURL,"rom-package.zip",true,true);
+                receiver = new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        String action = intent.getAction();
+                        if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
+                            unregisterReceiver(receiver);
+                            downloadFile(mFirebaseRemoteConfig.getString("magisk_url"),"magisk.zip",true,true);
                             try {
-                                Thread.sleep(500);
+                                Thread.sleep(10000);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-                        }
+                            intent = new Intent(context,UpdateActivity.class);
+                            intent.putExtra("flash", true);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
 
-                        if(((Switch) findViewById(R.id.switchFlashMagisk)).isChecked()) {
-                            new DownloadFileFromURL().execute(mFirebaseRemoteConfig.getString("magisk_url"));
-                            try {
-                                Thread.sleep(1000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            while (downloading) {
-                                try {
-                                    Thread.sleep(500);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
+                            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, "Updating")
+                                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                                    .setContentTitle("System Update")
+                                    .setContentText("Download complete, tap here to install.")
+                                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                                    .setContentIntent(pendingIntent)
+                                    .setOngoing(true);
 
-                        // Inform the user that the device will reboot soon
-                        UpdateActivity.this.runOnUiThread(new Runnable() {
-                            public void run() {
-                                ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
-                                ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
+                            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+                            notificationManager.createNotificationChannel(channel);
+                            notificationManager.notify(0, notificationBuilder.build());
 
-                                ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(2000);
-                                Toast.makeText((Context) UpdateActivity.this, "Rebooting in 30 seconds...",
-                                        Toast.LENGTH_LONG).show();
-                                Toast.makeText((Context) UpdateActivity.this, "Rebooting in 30 seconds...",
-                                        Toast.LENGTH_LONG).show();
-                            }
-                        });
-                        try {
-                            Thread.sleep(20000);
+
                             UpdateActivity.this.runOnUiThread(new Runnable() {
                                 public void run() {
-                                    ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(200);
-                                    Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 10 seconds...",
-                                            Toast.LENGTH_LONG).show();
-                                    Toast.makeText((Context) UpdateActivity.this, "You may need to confirm the update by entering your screen lock.",
-                                            Toast.LENGTH_LONG).show();
-                                    Toast.makeText((Context) UpdateActivity.this, "You may need to confirm the update by entering your screen lock.",
-                                            Toast.LENGTH_LONG).show();
+                                    ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
+                                    ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
                                 }
                             });
-                            Thread.sleep(9900);
-                            flash();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
                         }
                     }
-                }.start();
+                };
+                registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
             }
         });
     }
@@ -277,10 +247,10 @@ public class UpdateActivity extends AppCompatActivity {
                 cmdFile.delete();
 
             FileWriter myWriter = new FileWriter("/cache/recovery/command");
-            myWriter.write("boot-recovery\n--update_package=/data/data/dev.lexip.hub/files/rom-package.zip\n");
+            myWriter.write("boot-recovery\n--update_package="+Environment.DIRECTORY_DOWNLOADS+"/hub/rom-package.zip\n");
             refreshConfig();
             if(config.contains("flash_magisk=true"))
-                myWriter.write("--update_package=/data/data/dev.lexip.hub/files/magisk.zip\n");
+                myWriter.write("--update_package="+Environment.DIRECTORY_DOWNLOADS+"/hub/magisk.zip\n");
             myWriter.write("--wipe_cache\nreboot");
             myWriter.close();
 
@@ -294,73 +264,20 @@ public class UpdateActivity extends AppCompatActivity {
     }
 
 
-    /**
-     * Background Async Task to download file
-     */
-    class DownloadFileFromURL extends AsyncTask<String, String, String> {
+    public void downloadFile(String url, String filename, boolean silent, boolean useSpecifiedMirror){
+        downloadmanager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        Uri uri = Uri.parse(url);
+        DownloadManager.Request request = new DownloadManager.Request(uri);
+        request.setTitle("System Update")
+                .setDescription("Preparing")
+                .setVisibleInDownloadsUi(false)
+                .setDestinationInExternalPublicDir((String.valueOf(Environment.DIRECTORY_DOWNLOADS)),"/hub/"+filename);
+        if(silent)
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
+        else
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
-        /**
-         * Before starting background thread Show Progress Bar Dialog
-         */
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            downloading = true;
-        }
-
-        /**
-         * Downloading file in background thread
-         */
-        @Override
-        protected String doInBackground(String... f_url) {
-            int count;
-            try {
-                URL url = new URL(f_url[0]);
-                URLConnection connection = url.openConnection();
-                connection.connect();
-
-                int lenghtOfFile = connection.getContentLength();
-                InputStream input = new BufferedInputStream(url.openStream(), 8192);
-
-                OutputStream output;
-                if(url.toString().toLowerCase().contains("pixelexperience"))
-                    output = context.openFileOutput("rom-package.zip", Context.MODE_PRIVATE);
-                else if(url.toString().toLowerCase().contains("magisk"))
-                    output = context.openFileOutput("magisk.zip", Context.MODE_PRIVATE);
-                else
-                    output = context.openFileOutput("unknown.zip", Context.MODE_PRIVATE);
-
-                byte data[] = new byte[1024];
-                long total = 0;
-
-                while ((count = input.read(data)) != -1) {
-                    total += count;
-                    publishProgress("" + (int) ((total * 100) / lenghtOfFile));
-                    output.write(data, 0, count);
-                }
-
-                output.flush();
-                output.close();
-                input.close();
-
-            } catch (Exception e) {
-                Log.e("DownloadError: ", e.getMessage());
-            }
-            return null;
-        }
-
-        /**
-         * Updates the progress bar
-         * @param progress
-         */
-        protected void onProgressUpdate(String... progress) {
-            ((ProgressBar) findViewById(R.id.progressBar)).setProgress(Integer.parseInt(progress[0]));
-        }
-
-        @Override
-        protected void onPostExecute(String file_url) {
-            downloading = false;
-        }
+        downloads.push((long)downloadmanager.enqueue(request));
     }
 
     public String getSystemProperty(String key) {
@@ -376,14 +293,14 @@ public class UpdateActivity extends AppCompatActivity {
 
     public void refreshConfig() {
         try {
-            if (!new File("config").exists()) {
+            if (!new File("/data/data/dev.lexip.hub/files/config").exists()) {
                 FileWriter writer = null;
-                writer = new FileWriter("config");
+                writer = new FileWriter("/data/data/dev.lexip.hub/files/config");
                 writer.write("flash_magisk=true");
                 writer.close();
 
             } else {
-                File myObj = new File("config");
+                File myObj = new File("/data/data/dev.lexip.hub/files/config");
                 Scanner reader = new Scanner(myObj);
                 while (reader.hasNextLine()) {
                     config += reader.nextLine();
@@ -392,11 +309,24 @@ public class UpdateActivity extends AppCompatActivity {
 
                 if (!config.contains("flash_magisk")) {
                     FileWriter writer = null;
-                    writer = new FileWriter("config");
+                    writer = new FileWriter("/data/data/dev.lexip.hub/files/config");
                     writer.write("flash_magisk=true");
                     writer.close();
                 }
             }
         } catch(IOException e) {}
     }
+
+    public void deleteFiles() {
+        File dir = new File(Environment.DIRECTORY_DOWNLOADS+"/hub");
+        if (dir.isDirectory())
+        {
+            String[] children = dir.list();
+            for (int i = 0; i < children.length; i++)
+            {
+                new File(dir, children[i]).delete();
+            }
+        }
+    }
+
 }
