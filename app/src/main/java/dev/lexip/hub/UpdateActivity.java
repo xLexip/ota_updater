@@ -3,25 +3,17 @@ package dev.lexip.hub;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.app.ActivityManager;
-import android.app.Dialog;
-import android.app.DownloadManager;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
+import android.os.PowerManager;
 import android.os.Vibrator;
+import android.provider.Settings;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.webkit.WebView;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -33,26 +25,18 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.FileOutputStream;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Arrays;
-import java.util.Scanner;
 
 public class UpdateActivity extends AppCompatActivity {
 
-    // Progress Dialog
     private Context context;
-
     private boolean downloading = false;
-    private boolean readyForFlashing;
-
-    private String magiskURL;
     private String updateURL;
 
 
@@ -62,8 +46,9 @@ public class UpdateActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_update);
         context = UpdateActivity.this;
-        ((Switch) findViewById(R.id.switchKeepRoot)).setChecked(false);
-        ((Switch) findViewById(R.id.switchKeepRoot)).setVisibility(View.GONE);
+
+        ((Switch) findViewById(R.id.switchFlashMagisk)).setChecked(true);
+        ((Switch) findViewById(R.id.switchFlashMagisk)).setVisibility(View.VISIBLE);
 
         ((Button) findViewById(R.id.btnChangelog)).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -74,6 +59,14 @@ public class UpdateActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        // Delete old update files
+        if(new File("rom-package.zip").exists())
+            new File("rom-package.zip").delete();
+        if(new File("magisk.zip").exists())
+            new File("magisk.zip").delete();
+        if(new File("unknown.zip").exists())
+            new File("unknown.zip").delete();
     }
 
     @Override
@@ -105,29 +98,6 @@ public class UpdateActivity extends AppCompatActivity {
                     }
                 });
 
-        ((Switch) findViewById(R.id.switchAutoInstall)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) {
-                    if (!hasRootAccess()) {
-                        ((Switch) findViewById(R.id.switchAutoInstall)).setChecked(false);
-                        Toast.makeText(UpdateActivity.this, "E: No root access",
-                                Toast.LENGTH_SHORT).show();
-                        ((Switch) findViewById(R.id.switchKeepRoot)).setVisibility(View.GONE);
-                        ((Switch) findViewById(R.id.switchKeepRoot)).setChecked(false);
-                        ((Button) findViewById(R.id.btnFlash)).setText("UPDATE MANUALLY");
-                        return;
-                    }
-                    ((Switch) findViewById(R.id.switchKeepRoot)).setVisibility(View.VISIBLE);
-                    ((Switch) findViewById(R.id.switchKeepRoot)).setChecked(true);
-                    ((Button) findViewById(R.id.btnFlash)).setText("UPDATE NOW");
-                } else {
-                    ((Switch) findViewById(R.id.switchKeepRoot)).setVisibility(View.GONE);
-                    ((Switch) findViewById(R.id.switchKeepRoot)).setChecked(false);
-                    ((Button) findViewById(R.id.btnFlash)).setText("UPDATE MANUALLY");
-                }
-            }
-        });
-
         ((Button) findViewById(R.id.btnFlash)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -142,173 +112,137 @@ public class UpdateActivity extends AppCompatActivity {
                     return;
                 }
 
+                // Request battery optimization ignoring
+                Intent intent = new Intent();
+                String packageName = getPackageName();
+                PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+                if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                    intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                    intent.setData(Uri.parse("package:" + packageName));
+                    startActivity(intent);
+                }
+
                 ((Button) findViewById(R.id.btnFlash)).setVisibility(View.INVISIBLE);
-                ((Button) findViewById(R.id.btnChangelog)).setVisibility(View.INVISIBLE);
-                ((Switch) findViewById(R.id.switchAutoInstall)).setActivated(false);
-                ((Switch) findViewById(R.id.switchKeepRoot)).setActivated(false);
+                ((Switch) findViewById(R.id.switchFlashMagisk)).setVisibility(View.INVISIBLE);
 
-                if(((Switch) findViewById(R.id.switchKeepRoot)).isChecked()){
-                    magiskURL = mFirebaseRemoteConfig.getString("magisk_url");
-                    if(getSystemProperty("org.pixelexperience.device").equals("dumpling"))
-                        updateURL =  mFirebaseRemoteConfig.getString("dumpling_download");
-                    else if(getSystemProperty("org.pixelexperience.device").equals("cheeseburger"))
-                        updateURL =  mFirebaseRemoteConfig.getString("cheeseburger_download");
+                if(getSystemProperty("org.pixelexperience.device").equals("dumpling"))
+                    updateURL =  mFirebaseRemoteConfig.getString("dumpling_download");
+                else if(getSystemProperty("org.pixelexperience.device").equals("cheeseburger"))
+                    updateURL =  mFirebaseRemoteConfig.getString("cheeseburger_download");
 
-                    Toast.makeText(UpdateActivity.this, "This is a BETA feature.\nDownloading all required files...",
-                            Toast.LENGTH_LONG).show();
-                    Toast.makeText(UpdateActivity.this, "This is a BETA feature.\nDownloading all required files...",
-                            Toast.LENGTH_LONG).show();
-                    Toast.makeText(UpdateActivity.this, "This can take a while, depending on your location and connection. The device will automatically reboot after downloading.",
-                            Toast.LENGTH_LONG).show();
-                    Toast.makeText(UpdateActivity.this, "This can take a while, depending on your location and connection. The device will automatically reboot after downloading.",
-                            Toast.LENGTH_LONG).show();
-                    Toast.makeText(UpdateActivity.this, "This can take a while, depending on your location and connection. The device will automatically reboot after downloading.",
-                            Toast.LENGTH_LONG).show();
+                Toast.makeText(UpdateActivity.this, "Downloading all required files...",
+                        Toast.LENGTH_LONG).show();
+                Toast.makeText(UpdateActivity.this, "Downloading all required files...",
+                        Toast.LENGTH_LONG).show();
+                Toast.makeText(UpdateActivity.this, "This can take a while. The device will automatically reboot after downloading.",
+                        Toast.LENGTH_LONG).show();
+                Toast.makeText(UpdateActivity.this, "This can take a while. The device will automatically reboot after downloading.",
+                        Toast.LENGTH_LONG).show();
+                Toast.makeText(UpdateActivity.this, "This can take a while. The device will automatically reboot after downloading.",
+                        Toast.LENGTH_LONG).show();
 
-                    // Disable Battery Saver
-                    try {
-                        Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","settings put global low_power 0\n" +
-                                "am broadcast -a android.os.action.POWER_SAVE_MODE_CHANGED --ez mode false\n"});
-                    } catch (IOException e) {
-                        e.printStackTrace();
+
+                new Thread() {
+                    public void run() {
+                        try {
+                            Thread.sleep(19500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        UpdateActivity.this.runOnUiThread(new Runnable() {
+                            public void run() {
+                                ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
+                                ((Button) findViewById(R.id.btnFlash)).setText("CANCEL UPDATE");
+                                ((Switch) findViewById(R.id.switchFlashMagisk)).setVisibility(View.VISIBLE);
+                            }
+                        });
                     }
+                }.start();
 
-                    new Thread() {
-                        public void run() {
+                new Thread(){
+                    public void run(){
+                        new DownloadFileFromURL().execute(updateURL);
+
+                        while(downloading) {
                             try {
-                                Thread.sleep(19500);
+                                Thread.sleep(500);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-                            UpdateActivity.this.runOnUiThread(new Runnable() {
-                                public void run() {
-                                    ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
-                                    ((Button) findViewById(R.id.btnFlash)).setText("CANCEL UPDATE");
-                                    ((Button) findViewById(R.id.btnChangelog)).setVisibility(View.VISIBLE);
-                                }
-                            });
                         }
-                    }.start();
 
-                    new Thread(){
-                        public void run(){
-                            new DownloadFileFromURL().execute(updateURL);
-
-                            while(downloading) {
+                        if(((Switch) findViewById(R.id.switchFlashMagisk)).isChecked()) {
+                            new DownloadFileFromURL().execute(mFirebaseRemoteConfig.getString("magisk_url"));
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            while (downloading) {
                                 try {
                                     Thread.sleep(500);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }
                             }
+                        }
 
-                            if(((Switch) findViewById(R.id.switchKeepRoot)).isChecked()) {
-                                new DownloadFileFromURL().execute(mFirebaseRemoteConfig.getString("magisk_url"));
-                                try {
-                                    Thread.sleep(1000);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                                while (downloading) {
-                                    try {
-                                        Thread.sleep(500);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
+                        UpdateActivity.this.runOnUiThread(new Runnable() {
+                            public void run() {
+                                ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
+                                ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
+
+                                ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(2000);
+                                Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 30 seconds...",
+                                        Toast.LENGTH_LONG).show();
+                                Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 30 seconds...",
+                                        Toast.LENGTH_LONG).show();
                             }
-
+                        });
+                        try {
+                            Thread.sleep(20000);
                             UpdateActivity.this.runOnUiThread(new Runnable() {
                                 public void run() {
-                                    ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
-                                    ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
-
-                                    ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(2500);
-                                    Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 30 seconds...",
+                                    ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(200);
+                                    Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 10 seconds...",
                                             Toast.LENGTH_LONG).show();
-                                    Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 30 seconds...",
+                                    Toast.makeText((Context) UpdateActivity.this, "You may need to enter ypur pincode or pattern to decrypt and update.",
+                                            Toast.LENGTH_LONG).show();
+                                    Toast.makeText((Context) UpdateActivity.this, "You may need to enter ypur pincode or pattern to decrypt and update.",
                                             Toast.LENGTH_LONG).show();
                                 }
                             });
-                            try {
-                                Thread.sleep(20000);
-                                UpdateActivity.this.runOnUiThread(new Runnable() {
-                                    public void run() {
-                                        ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(200);
-                                        Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 10 seconds...",
-                                                Toast.LENGTH_LONG).show();
-                                        Toast.makeText((Context) UpdateActivity.this, "You may need to enter ypur pincode or pattern to decrypt and update.",
-                                                Toast.LENGTH_LONG).show();
-                                        Toast.makeText((Context) UpdateActivity.this, "You may need to enter ypur pincode or pattern to decrypt and update.",
-                                                Toast.LENGTH_LONG).show();
-                                    }
-                                });
-                                Thread.sleep(9900);
-                                flash();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
+                            Thread.sleep(9900);
+                            flash();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
-                    }.start();
-
-                } else {
-                    ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
-                    Intent intent = new Intent(UpdateActivity.this, WebActivity.class);
-                    Bundle b = new Bundle();
-                    b.putString("url", "https://telegra.ph/How-to-update-Pixel-Experience-12-05");
-                    intent.putExtras(b);
-                    startActivity(intent);
-
-                    new Thread(){
-                        public void run(){
-                            try {
-                                Thread.sleep(3500);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            if(getSystemProperty("org.pixelexperience.device").equals("dumpling"))
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("dumpling_download"))));
-                            else if(getSystemProperty("org.pixelexperience.device").equals("cheeseburger"))
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("cheeseburger_download"))));
-                        }
-                    }.start();
-                }
+                    }
+                }.start();
             }
         });
     }
 
     public void flash(){
-        Process p = null;
         try {
-            Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","rm /cache/recovery/command"});
-            Thread.sleep(50);
-            Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","echo 'boot-recovery ' > /cache/recovery/command"});
-            Thread.sleep(50);
-            Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","echo '--update_package=/data/data/dev.lexip.hub/files/"+updateURL.substring(updateURL.length()-10).replace("/","")+".zip"+"' >> /cache/recovery/command"});
-            Thread.sleep(50);
+            File cmdFile = new File("/cache/recovery/command");
+            if(cmdFile.exists() && cmdFile.isFile())
+                cmdFile.delete();
 
-            if(((Switch) findViewById(R.id.switchKeepRoot)).isChecked())
-                Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","echo '--update_package=/data/data/dev.lexip.hub/files/"+magiskURL.substring(magiskURL.length()-10).replace("/","")+".zip"+"' >> /cache/recovery/command"});
+            FileWriter myWriter = new FileWriter("/cache/recovery/command");
+            myWriter.write("boot-recovery\n--update_package=/data/data/dev.lexip.hub/files/rom-package.zip\n");
+            if(((Switch) findViewById(R.id.switchFlashMagisk)).isChecked())
+                myWriter.write("--update_package=/data/data/dev.lexip.hub/files/magisk.zip\n");
+            myWriter.write("--wipe_cache\nreboot");
+            myWriter.close();
 
-            Thread.sleep(50);
-            Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","echo '--wipe_cache' >> /cache/recovery/command"});
-            Thread.sleep(50);
-            Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","echo 'reboot' >> /cache/recovery/command"});
-        } catch (IOException | InterruptedException e) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            pm.reboot("recovery");
+            Toast.makeText((Context) UpdateActivity.this, "Thanks Android, but no, this is NOT a factory reset.",
+                    Toast.LENGTH_LONG).show();
+        } catch (IOException e) {
             Log.i("UpdateActivity", "Update failed", e);
         }
-
-        try {
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","reboot recovery"});
-        } catch (Exception ex) {
-            Log.i("UpdateActivity", "Reboot failed", ex);
-        }
-
     }
 
 
@@ -339,10 +273,15 @@ public class UpdateActivity extends AppCompatActivity {
 
                 int lenghtOfFile = connection.getContentLength();
 
-                InputStream input = new BufferedInputStream(url.openStream(),
-                        8192);
+                InputStream input = new BufferedInputStream(url.openStream(), 8192);
 
-                OutputStream output = context.openFileOutput((url.toString()).substring((url.toString()).length()-10).replace("/","")+".zip", Context.MODE_PRIVATE);
+                OutputStream output;
+                if(url.toString().toLowerCase().contains("pixelexperience"))
+                    output = context.openFileOutput("rom-package.zip", Context.MODE_PRIVATE);
+                else if(url.toString().toLowerCase().contains("magisk"))
+                    output = context.openFileOutput("magisk.zip", Context.MODE_PRIVATE);
+                else
+                    output = context.openFileOutput("unknown.zip", Context.MODE_PRIVATE);
 
                 byte data[] = new byte[1024];
 
@@ -364,7 +303,6 @@ public class UpdateActivity extends AppCompatActivity {
             } catch (Exception e) {
                 Log.e("DownloadError: ", e.getMessage());
             }
-
             return null;
         }
 
@@ -376,19 +314,6 @@ public class UpdateActivity extends AppCompatActivity {
         protected void onPostExecute(String file_url) {
             downloading = false;
         }
-    }
-
-    /**
-     *  Returns if the app has superuser rights
-     */
-    public boolean hasRootAccess() {
-        try {
-            java.util.Scanner s = new java.util.Scanner(Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","cd / && ls"}).getInputStream()).useDelimiter("\\A");
-            return !(s.hasNext() ? s.next() : "").equals("");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 
     public String getSystemProperty(String key) {
