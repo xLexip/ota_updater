@@ -50,16 +50,6 @@ public class UpdateActivity extends AppCompatActivity {
         ((Switch) findViewById(R.id.switchFlashMagisk)).setChecked(true);
         ((Switch) findViewById(R.id.switchFlashMagisk)).setVisibility(View.VISIBLE);
 
-        ((Button) findViewById(R.id.btnChangelog)).setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Intent intent = new Intent(UpdateActivity.this, WebActivity.class);
-                Bundle b = new Bundle();
-                b.putString("url", "https://telegra.ph/Changelog-12-14");
-                intent.putExtras(b);
-                startActivity(intent);
-            }
-        });
-
         // Delete old update files
         if(new File("rom-package.zip").exists())
             new File("rom-package.zip").delete();
@@ -98,6 +88,17 @@ public class UpdateActivity extends AppCompatActivity {
                     }
                 });
 
+        // Declare OnClickListeners
+        ((Button) findViewById(R.id.btnChangelog)).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(UpdateActivity.this, WebActivity.class);
+                Bundle b = new Bundle();
+                b.putString("url", "https://telegra.ph/Changelog-12-14");
+                intent.putExtras(b);
+                startActivity(intent);
+            }
+        });
+
         ((Button) findViewById(R.id.btnFlash)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -112,7 +113,7 @@ public class UpdateActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Request battery optimization ignoring
+                // Request to ignore the battery optimization
                 Intent intent = new Intent();
                 String packageName = getPackageName();
                 PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
@@ -130,18 +131,18 @@ public class UpdateActivity extends AppCompatActivity {
                 else if(getSystemProperty("org.pixelexperience.device").equals("cheeseburger"))
                     updateURL =  mFirebaseRemoteConfig.getString("cheeseburger_download");
 
-                Toast.makeText(UpdateActivity.this, "Downloading all required files...",
+                Toast.makeText(UpdateActivity.this, "Downloading update files...",
                         Toast.LENGTH_LONG).show();
-                Toast.makeText(UpdateActivity.this, "Downloading all required files...",
+                Toast.makeText(UpdateActivity.this, "Downloading update files...",
                         Toast.LENGTH_LONG).show();
-                Toast.makeText(UpdateActivity.this, "This can take a while. The device will automatically reboot after downloading.",
+                Toast.makeText(UpdateActivity.this, "This can take a while, your device will automatically reboot after downloading.",
                         Toast.LENGTH_LONG).show();
-                Toast.makeText(UpdateActivity.this, "This can take a while. The device will automatically reboot after downloading.",
+                Toast.makeText(UpdateActivity.this, "This can take a while, your device will automatically reboot after downloading.",
                         Toast.LENGTH_LONG).show();
-                Toast.makeText(UpdateActivity.this, "This can take a while. The device will automatically reboot after downloading.",
+                Toast.makeText(UpdateActivity.this, "This can take a while, your device will automatically reboot after downloading.",
                         Toast.LENGTH_LONG).show();
 
-
+                // Show Magisk Switch and cancelling option after the toasts have been shown
                 new Thread() {
                     public void run() {
                         try {
@@ -159,6 +160,7 @@ public class UpdateActivity extends AppCompatActivity {
                     }
                 }.start();
 
+                // Download Thread
                 new Thread(){
                     public void run(){
                         new DownloadFileFromURL().execute(updateURL);
@@ -187,15 +189,16 @@ public class UpdateActivity extends AppCompatActivity {
                             }
                         }
 
+                        // Inform the user that the device will reboot soon
                         UpdateActivity.this.runOnUiThread(new Runnable() {
                             public void run() {
                                 ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
                                 ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
 
                                 ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(2000);
-                                Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 30 seconds...",
+                                Toast.makeText((Context) UpdateActivity.this, "Rebooting in 30 seconds...",
                                         Toast.LENGTH_LONG).show();
-                                Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 30 seconds...",
+                                Toast.makeText((Context) UpdateActivity.this, "Rebooting in 30 seconds...",
                                         Toast.LENGTH_LONG).show();
                             }
                         });
@@ -206,9 +209,9 @@ public class UpdateActivity extends AppCompatActivity {
                                     ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(200);
                                     Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 10 seconds...",
                                             Toast.LENGTH_LONG).show();
-                                    Toast.makeText((Context) UpdateActivity.this, "You may need to enter ypur pincode or pattern to decrypt and update.",
+                                    Toast.makeText((Context) UpdateActivity.this, "You may need to confirm the update by entering your screen lock.",
                                             Toast.LENGTH_LONG).show();
-                                    Toast.makeText((Context) UpdateActivity.this, "You may need to enter ypur pincode or pattern to decrypt and update.",
+                                    Toast.makeText((Context) UpdateActivity.this, "You may need to confirm the update by entering your screen lock.",
                                             Toast.LENGTH_LONG).show();
                                 }
                             });
@@ -223,6 +226,9 @@ public class UpdateActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Creates the recovery command and reboots to recovery
+     */
     public void flash(){
         try {
             File cmdFile = new File("/cache/recovery/command");
@@ -272,7 +278,6 @@ public class UpdateActivity extends AppCompatActivity {
                 connection.connect();
 
                 int lenghtOfFile = connection.getContentLength();
-
                 InputStream input = new BufferedInputStream(url.openStream(), 8192);
 
                 OutputStream output;
@@ -284,19 +289,15 @@ public class UpdateActivity extends AppCompatActivity {
                     output = context.openFileOutput("unknown.zip", Context.MODE_PRIVATE);
 
                 byte data[] = new byte[1024];
-
                 long total = 0;
 
                 while ((count = input.read(data)) != -1) {
                     total += count;
-
                     publishProgress("" + (int) ((total * 100) / lenghtOfFile));
-
                     output.write(data, 0, count);
                 }
 
                 output.flush();
-
                 output.close();
                 input.close();
 
@@ -306,6 +307,10 @@ public class UpdateActivity extends AppCompatActivity {
             return null;
         }
 
+        /**
+         * Updates the progress bar
+         * @param progress
+         */
         protected void onProgressUpdate(String... progress) {
             ((ProgressBar) findViewById(R.id.progressBar)).setProgress(Integer.parseInt(progress[0]));
         }

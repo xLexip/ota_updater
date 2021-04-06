@@ -1,11 +1,5 @@
 package dev.lexip.hub;
 
-import dev.lexip.hub.BuildConfig;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -20,6 +14,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -160,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             });
 
-                            // Haptic Feedback
+                            // Haptic Feedback (only if a new update is available)
                             new Thread(){
                                 public void run(){
                                     ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(1);
@@ -172,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
                             }.start();
                         }
 
-                        // Update UI
+                        // Update Main UI
                         ((TextView) findViewById(R.id.tvAppName)).setText(mFirebaseRemoteConfig.getString("app_name"));
                         ((TextView) findViewById(R.id.tvRomName)).setText(mFirebaseRemoteConfig.getString("rom_name"));
                         ((TextView) findViewById(R.id.tvMaintenanceType)).setText(mFirebaseRemoteConfig.getString("maintenance_type"));
@@ -201,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
                         if(mFirebaseRemoteConfig.getString("helpbtn1_text").isEmpty() && mFirebaseRemoteConfig.getString("helpbtn2_text").isEmpty() && mFirebaseRemoteConfig.getString("helpbtn3_text").isEmpty() && mFirebaseRemoteConfig.getString("helpbtn4_text").isEmpty())
                             ((ConstraintLayout) findViewById(R.id.layHelpSection)).setVisibility(View.GONE);
 
+                        // Declare OnClickListeners
                         ((Button) findViewById(R.id.btnInfoOne)).setOnClickListener(new View.OnClickListener() {
                             public void onClick(View v) {
                                 if(mFirebaseRemoteConfig.getString("helpbtn1_url").contains("telegra.ph")) {
