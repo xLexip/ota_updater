@@ -13,6 +13,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -247,7 +248,9 @@ public class UpdateActivity extends AppCompatActivity {
                                     .setContentText("Download complete. Tap here to reboot.")
                                     .setPriority(NotificationCompat.PRIORITY_MAX)
                                     .setContentIntent(pendingIntent)
-                                    .setOngoing(true);
+                                    .setOngoing(true)
+                                    .setColorized(true)
+                                    .setColor(Color.argb(255,150,255,150));
 
                             NotificationManager notificationManager = getSystemService(NotificationManager.class);
                             notificationManager.createNotificationChannel(channel);
