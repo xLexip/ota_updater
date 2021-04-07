@@ -26,7 +26,7 @@ public class FirebaseMessagingService extends com.google.firebase.messaging.Fire
         NotificationCompat.Builder builder=new NotificationCompat.Builder(this)
                 .setAutoCancel(false)
                 .setContentTitle("FCM TITLE").setContentText(message)
-                .setSmallIcon(R.drawable.ic_notify)
+                .setSmallIcon(R.drawable.ic_notify_android)
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setContentIntent(pendingIntent);
 

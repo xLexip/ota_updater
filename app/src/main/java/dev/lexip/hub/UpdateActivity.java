@@ -211,7 +211,7 @@ public class UpdateActivity extends AppCompatActivity {
                             PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
 
                             NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, "Updating")
-                                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                                    .setSmallIcon(R.drawable.ic_notify_android)
                                     .setContentTitle("System Update")
                                     .setContentText("Download complete, tap here to install.")
                                     .setPriority(NotificationCompat.PRIORITY_MAX)
