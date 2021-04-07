@@ -57,7 +57,9 @@
         <!-- FCM Service -->
         <service
             android:name=".FirebaseMessagingService"
-            android:exported="false">
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" >
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
