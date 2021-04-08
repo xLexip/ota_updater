@@ -58,7 +58,6 @@ public class Autostart extends BroadcastReceiver
                     .setContentText("There is a new system update available.")
                     .setPriority(NotificationCompat.PRIORITY_MAX)
                     .setContentIntent(pendingIntent)
-                    .setOngoing(true)
                     .setColorized(true)
                     .setColor(Color.argb(255,150,255,150));
 
