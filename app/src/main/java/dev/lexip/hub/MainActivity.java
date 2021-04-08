@@ -2,6 +2,7 @@ package dev.lexip.hub;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private FirebaseRemoteConfig mFirebaseRemoteConfig;
     private String buildNumber;
+    private String appVersionName;
     private int clientRomVersion;
     private int latestRomVersion;
     private Context context;
@@ -54,7 +56,10 @@ public class MainActivity extends AppCompatActivity {
         mFirebaseRemoteConfig.setDefaultsAsync(R.xml.remote_config_defaults);
         mFirebaseRemoteConfig.fetch(1);
 
-        ((TextView) findViewById(R.id.tvAppVersion)).setText("v"+ BuildConfig.VERSION_NAME+"  -  github.com/xLexip/ota_updater");
+        try {appVersionName = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e) { e.printStackTrace();}
+
+        ((TextView) findViewById(R.id.tvAppVersion)).setText("v"+ appVersionName+"  -  github.com/xLexip/ota_updater");
         loadConfig(true);
     }
 
