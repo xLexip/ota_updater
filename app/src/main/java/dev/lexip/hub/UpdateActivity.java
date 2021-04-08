@@ -295,8 +295,23 @@ public class UpdateActivity extends AppCompatActivity {
             myWriter.write("--wipe_cache\nreboot");
             myWriter.close();
 
-            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-            pm.reboot("recovery");
+            new Thread() {
+                public void run() {
+
+                    // Clarify that this is no factory reset as claimed by the android system
+                    UpdateActivity.this.runOnUiThread(new Runnable() {
+                        public void run() {
+                            Toast.makeText((Context)UpdateActivity .this,"This is NOT a factory reset!",
+                                    Toast.LENGTH_LONG).show();
+                            try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
+                        }
+                    });
+
+                    // Reboot to recovery
+                    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                    pm.reboot("recovery");
+                }
+            }.start();
         } catch (IOException e) {
             Log.i("UpdateActivity", "Update failed", e);
         }
