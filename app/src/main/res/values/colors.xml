@@ -10,11 +10,11 @@
     <color name="black">#ff000000</color>
     <color name="white">#ffffffff</color>
 
-    <color name="bg">#ff0f131a</color> # blue_10
+    <color name="bg">#ff15181f</color> # blue_10
     <color name="bg_light">#ff151b26</color> # blue_15
     <color name="bg_dark">#ff0a0d12</color> # blue_7
 
     <color name="text">#ffffffff</color> # blue_10
-    <color name="button">#1bbbbbff</color> # blue_10
+    <color name="button">#1fbbbbff</color> # blue_10
 
 </resources>

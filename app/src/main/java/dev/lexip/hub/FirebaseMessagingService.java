@@ -5,6 +5,8 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.Color;
+
 import androidx.core.app.NotificationCompat;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -26,9 +28,11 @@ public class FirebaseMessagingService extends com.google.firebase.messaging.Fire
         NotificationCompat.Builder builder=new NotificationCompat.Builder(this)
                 .setAutoCancel(false)
                 .setContentTitle("FCM TITLE").setContentText(message)
-                .setSmallIcon(R.drawable.ic_notify)
+                .setSmallIcon(R.drawable.ic_notify_android)
                 .setDefaults(Notification.DEFAULT_ALL)
-                .setContentIntent(pendingIntent);
+                .setContentIntent(pendingIntent)
+                .setColorized(true)
+                .setColor(Color.argb(34,140,34,255));;
 
 
         NotificationManager notificationManager= (NotificationManager) getSystemService(NOTIFICATION_SERVICE);

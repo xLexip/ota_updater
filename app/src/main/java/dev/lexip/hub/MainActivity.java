@@ -1,13 +1,8 @@
 package dev.lexip.hub;
 
-import dev.lexip.hub.BuildConfig;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
-
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -21,8 +16,13 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.BuildConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
@@ -33,12 +33,15 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private FirebaseRemoteConfig mFirebaseRemoteConfig;
     private String buildNumber;
+    private String appVersionName;
     private int clientRomVersion;
     private int latestRomVersion;
+    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        context = this;
         setContentView(R.layout.activity_main);
 
         ((TextView)findViewById(R.id.tvLoading)).setText("Beaming data from space...");
@@ -53,7 +56,10 @@ public class MainActivity extends AppCompatActivity {
         mFirebaseRemoteConfig.setDefaultsAsync(R.xml.remote_config_defaults);
         mFirebaseRemoteConfig.fetch(1);
 
-        ((TextView) findViewById(R.id.tvAppVersion)).setText("v"+BuildConfig.VERSION_NAME+"  -  github.com/xLexip/ota_updater");
+        try {appVersionName = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e) { e.printStackTrace();}
+
+        ((TextView) findViewById(R.id.tvAppVersion)).setText("v"+ appVersionName+"  -  github.com/xLexip/ota_updater");
         loadConfig(true);
     }
 
@@ -160,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             });
 
-                            // Haptic Feedback
+                            // Haptic Feedback (only if a new update is available)
                             new Thread(){
                                 public void run(){
                                     ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(1);
@@ -172,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
                             }.start();
                         }
 
-                        // Update UI
+                        // Update Main UI
                         ((TextView) findViewById(R.id.tvAppName)).setText(mFirebaseRemoteConfig.getString("app_name"));
                         ((TextView) findViewById(R.id.tvRomName)).setText(mFirebaseRemoteConfig.getString("rom_name"));
                         ((TextView) findViewById(R.id.tvMaintenanceType)).setText(mFirebaseRemoteConfig.getString("maintenance_type"));
@@ -201,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
                         if(mFirebaseRemoteConfig.getString("helpbtn1_text").isEmpty() && mFirebaseRemoteConfig.getString("helpbtn2_text").isEmpty() && mFirebaseRemoteConfig.getString("helpbtn3_text").isEmpty() && mFirebaseRemoteConfig.getString("helpbtn4_text").isEmpty())
                             ((ConstraintLayout) findViewById(R.id.layHelpSection)).setVisibility(View.GONE);
 
+                        // Declare OnClickListeners
                         ((Button) findViewById(R.id.btnInfoOne)).setOnClickListener(new View.OnClickListener() {
                             public void onClick(View v) {
                                 if(mFirebaseRemoteConfig.getString("helpbtn1_url").contains("telegra.ph")) {

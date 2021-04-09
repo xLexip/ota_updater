@@ -2,27 +2,27 @@ package dev.lexip.hub;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 
-import android.app.ActivityManager;
-import android.app.Dialog;
+import android.app.AlarmManager;
 import android.app.DownloadManager;
-import android.app.ProgressDialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Vibrator;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,50 +32,31 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.FileOutputStream;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.Stack;
 
 public class UpdateActivity extends AppCompatActivity {
 
-    // Progress Dialog
     private Context context;
-
+    private FirebaseRemoteConfig mFirebaseRemoteConfig;
     private boolean downloading = false;
-    private boolean readyForFlashing;
-
-    private String magiskURL;
     private String updateURL;
+    private NotificationChannel channel;
+    private BroadcastReceiver receiver;
+    private Stack downloads;
+    private String config;
+    private DownloadManager downloadmanager;
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_update);
-        context = UpdateActivity.this;
-        ((Switch) findViewById(R.id.switchKeepRoot)).setChecked(false);
-        ((Switch) findViewById(R.id.switchKeepRoot)).setVisibility(View.GONE);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        if(!downloading){
-            ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
-        }
-
         // Remote Config: Initialize Firebase Remote Config
-        FirebaseRemoteConfig mFirebaseRemoteConfig;
         mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
         FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
                 .setMinimumFetchIntervalInSeconds(1000)
@@ -95,258 +76,264 @@ public class UpdateActivity extends AppCompatActivity {
                     }
                 });
 
-        ((Switch) findViewById(R.id.switchAutoInstall)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) {
-                    if (!hasRootAccess()) {
-                        ((Switch) findViewById(R.id.switchAutoInstall)).setChecked(false);
-                        Toast.makeText(UpdateActivity.this, "E: No root access",
-                                Toast.LENGTH_SHORT).show();
-                        ((Switch) findViewById(R.id.switchKeepRoot)).setVisibility(View.GONE);
-                        ((Switch) findViewById(R.id.switchKeepRoot)).setChecked(false);
-                        ((Button) findViewById(R.id.btnFlash)).setText("UPDATE MANUALLY");
-                        return;
-                    }
-                    ((Switch) findViewById(R.id.switchKeepRoot)).setVisibility(View.VISIBLE);
-                    ((Switch) findViewById(R.id.switchKeepRoot)).setChecked(true);
-                    ((Button) findViewById(R.id.btnFlash)).setText("UPDATE NOW");
-                } else {
-                    ((Switch) findViewById(R.id.switchKeepRoot)).setVisibility(View.GONE);
-                    ((Switch) findViewById(R.id.switchKeepRoot)).setChecked(false);
-                    ((Button) findViewById(R.id.btnFlash)).setText("UPDATE MANUALLY");
-                }
+        if (getIntent().hasExtra("flash")) {
+            flash();
+            System.exit(0);
+            return;
+        }
+
+        setContentView(R.layout.activity_update);
+        context = UpdateActivity.this;
+        downloads = new Stack();
+
+        ((Switch) findViewById(R.id.switchFlashMagisk)).setChecked(true);
+        ((Switch) findViewById(R.id.switchFlashMagisk)).setVisibility(View.VISIBLE);
+
+        // Create the NotificationChannel
+        channel = new NotificationChannel("Updating", "System Update", NotificationManager.IMPORTANCE_HIGH);
+        channel.setDescription("Processing a system update.");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        try {
+            refreshConfig();
+            if (config.contains("flash_magisk=false"))
+                ((Switch) findViewById(R.id.switchFlashMagisk)).setChecked(false);
+        } catch(NullPointerException e){}
+
+        // Declare Listeners
+        ((Button) findViewById(R.id.btnChangelog)).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(UpdateActivity.this, WebActivity.class);
+                Bundle b = new Bundle();
+                b.putString("url", "https://telegra.ph/Changelog-12-14");
+                intent.putExtras(b);
+                startActivity(intent);
             }
+        });
+
+        // Check if the update package was already downloaded
+        if(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").exists()) {
+            if (String.valueOf(new File("/sdcard/" + Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) || String.valueOf(new File(Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))) {
+                ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
+                ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
+                Toast.makeText((Context) UpdateActivity.this, "Download completed and verified.",
+                        Toast.LENGTH_LONG).show();
+            }
+        }
+
+
+        ((Switch) findViewById(R.id.switchFlashMagisk)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            refreshConfig();
+            try {
+                if (isChecked && config.contains("flash_magisk=false")) {
+                    String[] tmp = config.split("flash_magisk=false");
+                    FileWriter writer = null;
+                    writer = new FileWriter("/data/data/dev.lexip.hub/files/config");
+                    writer.write(Arrays.toString(tmp) + "flash_magisk=true");
+                    writer.close();
+                } else if (!isChecked && config.contains("flash_magisk=true")) {
+                    String[] tmp = config.split("flash_magisk=true");
+                    FileWriter writer = null;
+                    writer = new FileWriter("/data/data/dev.lexip.hub/files/config");
+                    writer.write(Arrays.toString(tmp) + "flash_magisk=false");
+                    writer.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         });
 
         ((Button) findViewById(R.id.btnFlash)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(((Button) findViewById(R.id.btnFlash)).getText().equals("REBOOT NOW")){
+                if (((Button) findViewById(R.id.btnFlash)).getText().equals("REBOOT NOW")) {
                     flash();
                     return;
+                } else if (((Button) findViewById(R.id.btnFlash)).getText().equals("CANCEL UPDATE")) {
+                    // Cancel Downloads
+                    while (!downloads.isEmpty()) {
+                        downloadmanager.remove(((long) downloads.pop()));
+                    }
+                    deleteDirectory(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub"));
+
+                    // Restart the app
+                    Intent mStartActivity = new Intent(context, MainActivity.class);
+                    int mPendingIntentId = 123456;
+                    PendingIntent mPendingIntent = PendingIntent.getActivity(context, mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
+                    AlarmManager mgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                    mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
+                    System.exit(0);
+                    return;
                 }
-                ((Button) findViewById(R.id.btnFlash)).setVisibility(View.INVISIBLE);
 
-                ((Switch) findViewById(R.id.switchAutoInstall)).setActivated(false);
-                ((Switch) findViewById(R.id.switchKeepRoot)).setActivated(false);
+                // Request to ignore the battery optimization
+                Intent intent = new Intent();
+                String packageName = getPackageName();
+                PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+                if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                    intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                    intent.setData(Uri.parse("package:" + packageName));
+                    startActivity(intent);
+                }
 
-                if(((Switch) findViewById(R.id.switchKeepRoot)).isChecked()){
-                    magiskURL = mFirebaseRemoteConfig.getString("magisk_url");
-                    if(getSystemProperty("org.pixelexperience.device").equals("dumpling"))
-                        updateURL =  mFirebaseRemoteConfig.getString("dumpling_download");
-                    else if(getSystemProperty("org.pixelexperience.device").equals("cheeseburger"))
-                        updateURL =  mFirebaseRemoteConfig.getString("cheeseburger_download");
+                downloadUpdateFiles();
+            }
+        });
+    }
 
-                    Toast.makeText(UpdateActivity.this, "This is a BETA feature.\nDownloading all required files...",
-                            Toast.LENGTH_LONG).show();
-                    Toast.makeText(UpdateActivity.this, "This is a BETA feature.\nDownloading all required files...",
-                            Toast.LENGTH_LONG).show();
-                    Toast.makeText(UpdateActivity.this, "This can take a while, depending on your location and connection. The device will automatically reboot after downloading.",
-                            Toast.LENGTH_LONG).show();
-                    Toast.makeText(UpdateActivity.this, "This can take a while, depending on your location and connection. The device will automatically reboot after downloading.",
-                            Toast.LENGTH_LONG).show();
-                    Toast.makeText(UpdateActivity.this, "This can take a while, depending on your location and connection. The device will automatically reboot after downloading.",
-                            Toast.LENGTH_LONG).show();
+    public void downloadUpdateFiles() {
+        new Thread() {
+            public void run() {
+                if (getSystemProperty("org.pixelexperience.device").equals("dumpling"))
+                    updateURL = mFirebaseRemoteConfig.getString("dumpling_download");
+                else if (getSystemProperty("org.pixelexperience.device").equals("cheeseburger"))
+                    updateURL = mFirebaseRemoteConfig.getString("cheeseburger_download");
 
-                    new Thread(){
-                        public void run(){
-                            new DownloadFileFromURL().execute(updateURL);
 
-                            while(downloading) {
-                                try {
-                                    Thread.sleep(500);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
+                new Thread() {
+                    public void run() {
+                        UpdateActivity.this.runOnUiThread(new Runnable() {
+                            public void run() {
+                                Toast.makeText((Context) UpdateActivity.this, "Downloading...",
+                                        Toast.LENGTH_LONG).show();
+                                ((Button) findViewById(R.id.btnFlash)).setText("CANCEL UPDATE");
+                            }
+                        });
+                    }
+                }.start();
+
+                // Already downloaded?
+                if(!String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) && !String.valueOf(new File(Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))){
+                    deleteDirectory(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub"));
+                    downloadFile(updateURL, mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip", false);
+                } else {
+                    Toast.makeText((Context) UpdateActivity.this, "Verifying package...",
+                            Toast.LENGTH_LONG).show();
+                    if (new File(Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").exists())
+                        new File(Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").delete();
+                    downloadFile(mFirebaseRemoteConfig.getString("magisk_url"), "magisk.zip", true);
+                }
+
+                receiver = new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        String action = intent.getAction();
+                        if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
+                            if (!new File(Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").exists())
+                                    downloadFile(mFirebaseRemoteConfig.getString("magisk_url"), "magisk.zip", true);
+                            unregisterReceiver(receiver);
+
+                            // Verify package
+                            if(!String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) && !String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))) {
+                                Toast.makeText((Context) UpdateActivity.this, "Package corrupted. Re-downloading...",
+                                        Toast.LENGTH_LONG).show();
+                                deleteDirectory(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub"));
+                                downloadUpdateFiles();
+                                return;
                             }
 
-                            if(((Switch) findViewById(R.id.switchKeepRoot)).isChecked()) {
-                                new DownloadFileFromURL().execute(mFirebaseRemoteConfig.getString("magisk_url"));
-                                try {
-                                    Thread.sleep(1000);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                                while (downloading) {
-                                    try {
-                                        Thread.sleep(500);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
+                            intent = new Intent(context, UpdateActivity.class);
+                            intent.putExtra("flash", true);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
+                            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, "Updating")
+                                    .setSmallIcon(R.drawable.ic_notify_android)
+                                    .setContentTitle("System Update")
+                                    .setContentText("Download complete. Tap here to reboot.")
+                                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                                    .setContentIntent(pendingIntent)
+                                    .setOngoing(true)
+                                    .setColorized(true)
+                                    .setColor(Color.argb(255,150,255,150));
+
+                            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+                            notificationManager.createNotificationChannel(channel);
+                            notificationManager.notify(0, notificationBuilder.build());
+
 
                             UpdateActivity.this.runOnUiThread(new Runnable() {
                                 public void run() {
                                     ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
                                     ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
-
-                                    ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(2500);
-                                    Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 30 seconds...",
-                                            Toast.LENGTH_LONG).show();
-                                    Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 30 seconds...",
-                                            Toast.LENGTH_LONG).show();
                                 }
                             });
-                            try {
-                                Thread.sleep(20000);
-                                UpdateActivity.this.runOnUiThread(new Runnable() {
-                                    public void run() {
-                                        ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(200);
-                                        Toast.makeText((Context) UpdateActivity.this, "Rebooting to update in 10 seconds...",
-                                                Toast.LENGTH_LONG).show();
-                                        Toast.makeText((Context) UpdateActivity.this, "You may need to enter ypur pincode or pattern to decrypt and update.",
-                                                Toast.LENGTH_LONG).show();
-                                        Toast.makeText((Context) UpdateActivity.this, "You may need to enter ypur pincode or pattern to decrypt and update.",
-                                                Toast.LENGTH_LONG).show();
-                                    }
-                                });
-                                Thread.sleep(9900);
-                                flash();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
                         }
-                    }.start();
-
-                } else {
-                    ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
-                    Intent intent = new Intent(UpdateActivity.this, WebActivity.class);
-                    Bundle b = new Bundle();
-                    b.putString("url", "https://telegra.ph/How-to-update-Pixel-Experience-12-05");
-                    intent.putExtras(b);
-                    startActivity(intent);
-
-                    new Thread(){
-                        public void run(){
-                            try {
-                                Thread.sleep(3500);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            if(getSystemProperty("org.pixelexperience.device").equals("dumpling"))
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("dumpling_download"))));
-                            else if(getSystemProperty("org.pixelexperience.device").equals("cheeseburger"))
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("cheeseburger_download"))));
-                        }
-                    }.start();
-                }
+                    }
+                };
+                registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
             }
-        });
+        }.start();
     }
 
-    public void flash(){
-        Process p = null;
+
+    /**
+     * The actual flashing process
+     * Creates the recovery command and reboots to recovery
+     */
+    public void flash() {
         try {
-            Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","rm /cache/recovery/command"});
-            Thread.sleep(50);
-            Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","echo 'boot-recovery ' > /cache/recovery/command"});
-            Thread.sleep(50);
-            Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","echo '--update_package=/data/data/dev.lexip.hub/files/"+updateURL.substring(updateURL.length()-10).replace("/","")+".zip"+"' >> /cache/recovery/command"});
-            Thread.sleep(50);
+            // Verify rom package
+            if(!String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) && !String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))){
+                downloadUpdateFiles();
+                return;
+            }
 
-            if(((Switch) findViewById(R.id.switchKeepRoot)).isChecked())
-                Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","echo '--update_package=/data/data/dev.lexip.hub/files/"+magiskURL.substring(magiskURL.length()-10).replace("/","")+".zip"+"' >> /cache/recovery/command"});
+            File cmdFile = new File("/cache/recovery/command");
+            if (cmdFile.exists() && cmdFile.isFile())
+                cmdFile.delete();
 
-            Thread.sleep(50);
-            Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","echo '--wipe_cache' >> /cache/recovery/command"});
-            Thread.sleep(50);
-            Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","echo 'reboot' >> /cache/recovery/command"});
-        } catch (IOException | InterruptedException e) {
+            FileWriter myWriter = new FileWriter("/cache/recovery/command");
+            myWriter.write("boot-recovery\n--update_package=" + Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip\n");
+            refreshConfig();
+            if (config.contains("flash_magisk=true"))
+                myWriter.write("--update_package=" + Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip\n");
+            myWriter.write("--wipe_cache\nreboot");
+            myWriter.close();
+
+            new Thread() {
+                public void run() {
+
+                    // Clarify that this is no factory reset as claimed by the android system
+                    UpdateActivity.this.runOnUiThread(new Runnable() {
+                        public void run() {
+                            Toast.makeText((Context)UpdateActivity .this,"This is NOT a factory reset!",
+                                    Toast.LENGTH_LONG).show();
+                            try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
+                        }
+                    });
+
+                    // Reboot to recovery
+                    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                    pm.reboot("recovery");
+                }
+            }.start();
+        } catch (IOException e) {
             Log.i("UpdateActivity", "Update failed", e);
         }
-
-        try {
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","reboot recovery"});
-        } catch (Exception ex) {
-            Log.i("UpdateActivity", "Reboot failed", ex);
-        }
-
     }
 
+    public void downloadFile(String url, String filename, boolean silent) {
+        downloadmanager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        Uri uri = Uri.parse(url);
+        DownloadManager.Request request = new DownloadManager.Request(uri);
+        request.setTitle("System Update")
+                .setDescription("Preparing")
+                .setVisibleInDownloadsUi(false)
+                .setDestinationInExternalPublicDir((String.valueOf(Environment.DIRECTORY_DOWNLOADS)), "/hub/" + filename);
 
-    /**
-     * Background Async Task to download file
-     */
-    class DownloadFileFromURL extends AsyncTask<String, String, String> {
+        if (silent)
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
+        else
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
 
-        /**
-         * Before starting background thread Show Progress Bar Dialog
-         */
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            downloading = true;
-        }
-
-        /**
-         * Downloading file in background thread
-         */
-        @Override
-        protected String doInBackground(String... f_url) {
-            int count;
-            try {
-                URL url = new URL(f_url[0]);
-                URLConnection connection = url.openConnection();
-                connection.connect();
-
-                int lenghtOfFile = connection.getContentLength();
-
-                InputStream input = new BufferedInputStream(url.openStream(),
-                        8192);
-
-                OutputStream output = context.openFileOutput((url.toString()).substring((url.toString()).length()-10).replace("/","")+".zip", Context.MODE_PRIVATE);
-
-                byte data[] = new byte[1024];
-
-                long total = 0;
-
-                while ((count = input.read(data)) != -1) {
-                    total += count;
-
-                    publishProgress("" + (int) ((total * 100) / lenghtOfFile));
-
-                    output.write(data, 0, count);
-                }
-
-                output.flush();
-
-                output.close();
-                input.close();
-
-            } catch (Exception e) {
-                Log.e("DownloadError: ", e.getMessage());
-            }
-
-            return null;
-        }
-
-        protected void onProgressUpdate(String... progress) {
-            ((ProgressBar) findViewById(R.id.progressBar)).setProgress(Integer.parseInt(progress[0]));
-        }
-
-        @Override
-        protected void onPostExecute(String file_url) {
-            downloading = false;
-        }
-    }
-
-    /**
-     *  Returns if the app has superuser rights
-     */
-    public boolean hasRootAccess() {
-        try {
-            java.util.Scanner s = new java.util.Scanner(Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","cd / && ls"}).getInputStream()).useDelimiter("\\A");
-            return !(s.hasNext() ? s.next() : "").equals("");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
+        downloads.push((long) downloadmanager.enqueue(request));
     }
 
     public String getSystemProperty(String key) {
@@ -358,5 +345,42 @@ public class UpdateActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         return value;
+    }
+
+    public void refreshConfig() {
+        try {
+            if (!new File("/data/data/dev.lexip.hub/files/config").exists()) {
+                FileWriter writer = null;
+                writer = new FileWriter("/data/data/dev.lexip.hub/files/config");
+                writer.write("flash_magisk=true");
+                writer.close();
+
+            } else {
+                File myObj = new File("/data/data/dev.lexip.hub/files/config");
+                Scanner reader = new Scanner(myObj);
+                while (reader.hasNextLine()) {
+                    config += reader.nextLine();
+                }
+                reader.close();
+
+                if (!config.contains("flash_magisk")) {
+                    FileWriter writer = null;
+                    writer = new FileWriter("/data/data/dev.lexip.hub/files/config");
+                    writer.write("flash_magisk=true");
+                    writer.close();
+                }
+            }
+        } catch (IOException e) {
+        }
+    }
+
+    public boolean deleteDirectory(File dir) {
+        File[] allContents = dir.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteDirectory(file);
+            }
+        }
+        return dir.delete();
     }
 }

@@ -7,28 +7,74 @@
     tools:context=".UpdateActivity">
 
     <Button
-        android:id="@+id/btnFlash"
+        android:id="@+id/btnChangelog"
         android:layout_width="wrap_content"
         android:layout_height="45dp"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="32dp"
         android:background="@drawable/button_shape"
         android:backgroundTint="@color/button"
         android:fontFamily="@font/montserrat"
         android:foregroundTint="@color/text"
-        android:text="UPDATE MANUALLY"
+        android:text="WHAT'S NEW?"
         android:textAllCaps="true"
         android:textColor="@color/text"
         android:textSize="13sp"
         android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/switchKeepRoot" />
+        app:layout_constraintTop_toBottomOf="@+id/tvVersion" />
+
+    <Button
+        android:id="@+id/btnFlash"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:background="@drawable/button_shape"
+        android:backgroundTint="@color/button"
+        android:fontFamily="@font/montserrat"
+        android:foregroundTint="@color/text"
+        android:text="INSTALL UPDATE"
+        android:textAllCaps="true"
+        android:textColor="@color/text"
+        android:textSize="13sp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@+id/switchFlashMagisk"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnChangelog"
+        app:layout_constraintVertical_bias="0.9" />
+
+    <Switch
+        android:id="@+id/switchFlashMagisk"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="40dp"
+        android:enabled="true"
+        android:fontFamily="@font/montserrat"
+        android:foregroundTint="@color/orange_50"
+        android:hapticFeedbackEnabled="true"
+        android:scaleX="1.5"
+        android:scaleY="1.5"
+        android:text="FLASH MAGISK "
+        android:textAlignment="textEnd"
+        android:textColor="@color/text"
+        android:textSize="7dp"
+        android:thumb="@drawable/thumb_selector"
+        android:trackTint="@color/black"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.521"
+        app:layout_constraintStart_toStartOf="parent"
+        app:track="@drawable/track_selector" />
 
     <TextView
         android:id="@+id/tvAppName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
+        android:alpha="0.9"
         android:fontFamily="@font/montserrat_bold"
         android:text="APP_NAME"
         android:textAllCaps="true"
@@ -76,86 +122,30 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/vDevider" />
 
-    <TextView
-        android:id="@+id/tvVersion"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/montserrat_bold"
-        android:text="VERSION"
-        android:textAllCaps="true"
-        android:textColor="@color/text"
-        android:textSize="22sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="371dp"
-        android:layout_height="10dp"
-        android:layout_marginBottom="10dp"
-        android:foregroundTint="@color/orange_50"
-        android:progress="100"
-        android:progressTint="@color/orange_75"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.6"
-        app:layout_constraintStart_toStartOf="parent" />
-
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="272dp"
         android:layout_height="131dp"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="108dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvMaintenanceType"
         app:srcCompat="@drawable/android" />
 
-    <Switch
-        android:id="@+id/switchAutoInstall"
+    <TextView
+        android:id="@+id/tvVersion"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="92dp"
-        android:layout_marginEnd="125dp"
-        android:fontFamily="@font/montserrat"
-        android:foregroundTint="@color/orange_50"
-        android:hapticFeedbackEnabled="true"
-        android:scaleX="1.5"
-        android:scaleY="1.5"
-        android:text="AUTO INSTALL (ROOT)  "
-        android:textAlignment="textEnd"
+        android:layout_marginTop="4dp"
+        android:alpha="0.9"
+        android:fontFamily="@font/montserrat_bold"
+        android:text="VERSION"
+        android:textAllCaps="true"
         android:textColor="@color/text"
-        android:textSize="10dp"
-        android:thumb="@drawable/thumb_selector"
-        android:trackTint="@color/black"
+        android:textSize="22sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvVersion"
-        app:track="@drawable/track_selector"
-        tools:checked="false" />
-
-    <Switch
-        android:id="@+id/switchKeepRoot"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="115dp"
-        android:fontFamily="@font/montserrat"
-        android:foregroundTint="@color/orange_50"
-        android:hapticFeedbackEnabled="true"
-        android:scaleX="1.5"
-        android:scaleY="1.5"
-        android:text="KEEP MAGISK  "
-        android:textAlignment="textEnd"
-        android:textColor="@color/text"
-        android:textSize="10dp"
-        android:thumb="@drawable/thumb_selector"
-        android:trackTint="@color/black"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/switchAutoInstall"
-        app:track="@drawable/track_selector" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
