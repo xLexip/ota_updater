@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
+import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.DownloadManager;
 import android.app.NotificationChannel;
@@ -156,19 +157,8 @@ public class UpdateActivity extends AppCompatActivity {
                     flash();
                     return;
                 } else if (((Button) findViewById(R.id.btnFlash)).getText().equals("CANCEL UPDATE")) {
-                    // Cancel Downloads
-                    while (!downloads.isEmpty()) {
-                        downloadmanager.remove(((long) downloads.pop()));
-                    }
-                    deleteDirectory(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub"));
-
-                    // Restart the app
-                    Intent mStartActivity = new Intent(context, MainActivity.class);
-                    int mPendingIntentId = 123456;
-                    PendingIntent mPendingIntent = PendingIntent.getActivity(context, mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
-                    AlarmManager mgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-                    mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
-                    System.exit(0);
+                    cancelUpdatingProcess();
+                    Log.i("Update Activity","Update aborted by user.");
                     return;
                 }
 
@@ -231,10 +221,8 @@ public class UpdateActivity extends AppCompatActivity {
 
                             // Verify package
                             if(!String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) && !String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))) {
-                                Toast.makeText((Context) UpdateActivity.this, "Package corrupted. Re-downloading...",
-                                        Toast.LENGTH_LONG).show();
-                                deleteDirectory(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub"));
-                                downloadUpdateFiles();
+                                Log.w(context.getClassLoader().toString(),"ROM Package corrupted");
+                                cancelUpdatingProcess();
                                 return;
                             }
 
@@ -260,7 +248,7 @@ public class UpdateActivity extends AppCompatActivity {
 
                             UpdateActivity.this.runOnUiThread(new Runnable() {
                                 public void run() {
-                                    ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
+                                    findViewById(R.id.btnFlash).setVisibility(View.VISIBLE);
                                     ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
                                 }
                             });
@@ -281,7 +269,8 @@ public class UpdateActivity extends AppCompatActivity {
         try {
             // Verify rom package
             if(!String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) && !String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))){
-                downloadUpdateFiles();
+                Log.w(context.getClassLoader().toString(),"ROM Package corrupted");
+                cancelUpdatingProcess();
                 return;
             }
 
@@ -315,7 +304,7 @@ public class UpdateActivity extends AppCompatActivity {
                 }
             }.start();
         } catch (IOException e) {
-            Log.i("UpdateActivity", "Update failed", e);
+            Log.i(context.getClassLoader().toString(), "Update failed", e);
         }
     }
 
@@ -382,5 +371,24 @@ public class UpdateActivity extends AppCompatActivity {
             }
         }
         return dir.delete();
+    }
+
+    public void cancelUpdatingProcess(){
+        Log.i(context.getClassLoader().toString(),"Canceling the update process...");
+
+        // Cancel Downloads
+        while (!downloads.isEmpty()) {
+            downloadmanager.remove(((long) downloads.pop()));
+        }
+
+        // Delete all files
+        deleteDirectory(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub"));
+
+        // Update UI
+        UpdateActivity.this.runOnUiThread(new Runnable() {
+            public void run() {
+                ((Button) findViewById(R.id.btnFlash)).setText("INSTALL UPDATE");
+            }
+        });
     }
 }
