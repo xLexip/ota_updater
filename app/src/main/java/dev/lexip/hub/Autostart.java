@@ -7,9 +7,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
@@ -39,7 +36,10 @@ public class Autostart extends BroadcastReceiver
         // Check for new updates
         String buildNumber = new UpdateActivity().getSystemProperty("org.pixelexperience.version.display");
         int clientRomVersion = Integer.parseInt((buildNumber.substring(buildNumber.indexOf("-20")+1)).substring(0,8));
-        int latestRomVersion = Integer.parseInt(mFirebaseRemoteConfig.getString("latest_rom_version"));
+        int latestRomVersion = 0;
+        try {
+            latestRomVersion = Integer.parseInt(mFirebaseRemoteConfig.getString("latest_rom_version"));
+        } catch (NumberFormatException e) {}
 
         if(clientRomVersion<latestRomVersion) {
             Log.i("Autostart","New System Update Available");
@@ -65,8 +65,10 @@ public class Autostart extends BroadcastReceiver
             notificationManager.createNotificationChannel(channel);
             notificationManager.notify(0, notificationBuilder.build());
         }
+        else if (latestRomVersion == 0)
+            Log.w("Autostart","Could not get latest_rom_version.");
         else
-            Log.w("Autostart","System up-to-date OR failed to connect");
+            Log.w("Autostart","System up-to-date.");
 
         // Start FCM Service
         Intent intent = new Intent(context,FirebaseMessagingService.class);
