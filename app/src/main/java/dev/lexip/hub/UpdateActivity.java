@@ -117,7 +117,7 @@ public class UpdateActivity extends AppCompatActivity {
         });
 
         // Check if the update package was already downloaded
-        if(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").exists()) {
+        if(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").exists() && new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").exists()) {
             if (String.valueOf(new File("/sdcard/" + Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) || String.valueOf(new File(Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))) {
                 ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
                 ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
@@ -198,26 +198,32 @@ public class UpdateActivity extends AppCompatActivity {
                     }
                 }.start();
 
+                final int[] downloadedFiles = {0};
+                int neededDownloads = 1;
+
                 // Already downloaded?
                 if(!String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) && !String.valueOf(new File(Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))){
                     deleteDirectory(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub"));
+                    neededDownloads = 2;
+                    downloadFile(mFirebaseRemoteConfig.getString("magisk_url"), "magisk.zip", true);
                     downloadFile(updateURL, mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip", false);
                 } else {
-                    Toast.makeText((Context) UpdateActivity.this, "Verifying package...",
-                            Toast.LENGTH_LONG).show();
                     if (new File(Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").exists())
                         new File(Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").delete();
-                    downloadFile(mFirebaseRemoteConfig.getString("magisk_url"), "magisk.zip", true);
+                    downloadFile(mFirebaseRemoteConfig.getString("magisk_url"), "magisk.zip", false);
                 }
+
+                int finalNeededDownloads = neededDownloads;
 
                 receiver = new BroadcastReceiver() {
                     @Override
                     public void onReceive(Context context, Intent intent) {
                         String action = intent.getAction();
                         if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
-                            if (!new File(Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").exists())
-                                    downloadFile(mFirebaseRemoteConfig.getString("magisk_url"), "magisk.zip", true);
-                            unregisterReceiver(receiver);
+
+                            downloadedFiles[0] += 1;
+                            if(downloadedFiles[0]< finalNeededDownloads)
+                                return;
 
                             // Verify package
                             if(!String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) && !String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))) {
@@ -281,7 +287,7 @@ public class UpdateActivity extends AppCompatActivity {
             FileWriter myWriter = new FileWriter("/cache/recovery/command");
             myWriter.write("boot-recovery\n--update_package=" + Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip\n");
             refreshConfig();
-            if (config.contains("flash_magisk=true"))
+            if (config.contains("flash_magisk=true") && new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").exists())
                 myWriter.write("--update_package=" + Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip\n");
             myWriter.write("--wipe_cache\nreboot");
             myWriter.close();
@@ -304,6 +310,7 @@ public class UpdateActivity extends AppCompatActivity {
                 }
             }.start();
         } catch (IOException e) {
+            e.printStackTrace();
             Log.i(context.getClassLoader().toString(), "Update failed", e);
         }
     }
