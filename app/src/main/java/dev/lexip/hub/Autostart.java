@@ -59,7 +59,8 @@ public class Autostart extends BroadcastReceiver
                     .setPriority(NotificationCompat.PRIORITY_MAX)
                     .setContentIntent(pendingIntent)
                     .setColorized(true)
-                    .setColor(Color.argb(255,150,255,150));
+                    .setColor(Color.argb(255,150,255,150))
+                    .setAutoCancel(true);
 
             NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
