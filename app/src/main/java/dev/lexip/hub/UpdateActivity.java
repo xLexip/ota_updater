@@ -196,8 +196,6 @@ public class UpdateActivity extends AppCompatActivity {
                     public void run() {
                         UpdateActivity.this.runOnUiThread(new Runnable() {
                             public void run() {
-                                Toast.makeText((Context) UpdateActivity.this, "Downloading...",
-                                        Toast.LENGTH_LONG).show();
                                 ((Button) findViewById(R.id.btnFlash)).setText("CANCEL UPDATE");
                             }
                         });
