@@ -118,7 +118,10 @@ public class UpdateActivity extends AppCompatActivity {
 
         // Check if the update package was already downloaded
         if(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").exists() && new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").exists()) {
-            if (String.valueOf(new File("/sdcard/" + Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) || String.valueOf(new File(Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))) {
+            if (!downloads.isEmpty()) {
+                ((Button) findViewById(R.id.btnFlash)).setText("CANCEL UPDATE");
+            }
+            else if (String.valueOf(new File("/sdcard/" + Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) || String.valueOf(new File(Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))) {
                 ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
                 ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
                 Toast.makeText((Context) UpdateActivity.this, "Download completed and verified.",
@@ -229,6 +232,11 @@ public class UpdateActivity extends AppCompatActivity {
                                 return;
 
                             // Verify package
+                            if(!downloads.isEmpty()){
+                                Log.w(context.getClassLoader().toString(),"Reached verification while downloading. Abroting...");
+                                cancelUpdatingProcess();
+                                return;
+                            }
                             if(!String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) && !String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))) {
                                 Log.w(context.getClassLoader().toString(),"ROM Package corrupted");
                                 cancelUpdatingProcess();
@@ -277,6 +285,11 @@ public class UpdateActivity extends AppCompatActivity {
     public void flash() {
         try {
             // Verify rom package
+            if(!downloads.isEmpty()){
+                Log.w(context.getClassLoader().toString(),"Reached flash() while downloading. Abroting...");
+                cancelUpdatingProcess();
+                return;
+            }
             if(!String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) && !String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))){
                 Log.w(context.getClassLoader().toString(),"ROM Package corrupted");
                 cancelUpdatingProcess();
