@@ -177,6 +177,9 @@ public class UpdateActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onBackPressed () { }
+
     public void downloadUpdateFiles() {
         new Thread() {
             public void run() {
