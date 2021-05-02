@@ -230,13 +230,6 @@ public class UpdateActivity extends AppCompatActivity {
                             if(downloadedFiles[0]< finalNeededDownloads)
                                 return;
 
-                            // Verify package
-                            if(!downloads.isEmpty()){
-                                Log.w(context.getClassLoader().toString(),"Reached verification while downloading. Abroting...");
-                                cancelUpdatingProcess();
-                                downloadedFiles[0] = 0;
-                                return;
-                            }
                             if(!String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) && !String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))) {
                                 Log.w(context.getClassLoader().toString(),"ROM Package corrupted");
                                 cancelUpdatingProcess();
