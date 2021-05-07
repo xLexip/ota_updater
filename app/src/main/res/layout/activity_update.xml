@@ -6,6 +6,23 @@
     android:layout_height="match_parent"
     tools:context=".UpdateActivity">
 
+    <TextView
+        android:id="@+id/tvAppVersion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:alpha="0.15"
+        android:fontFamily="@font/montserrat_light"
+        android:text="vX.XXXXXXXX  -  lexip.dev/hub"
+        android:textAllCaps="false"
+        android:textColor="@color/text"
+        android:textSize="10sp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible" />
+
     <Button
         android:id="@+id/btnChangelog"
         android:layout_width="wrap_content"
@@ -40,16 +57,16 @@
         android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/switchFlashMagisk"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnChangelog"
-        app:layout_constraintVertical_bias="0.9" />
+        app:layout_constraintVertical_bias="0.896" />
 
     <Switch
         android:id="@+id/switchFlashMagisk"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="40dp"
+        android:layout_marginBottom="60dp"
         android:enabled="true"
         android:fontFamily="@font/montserrat"
         android:foregroundTint="@color/orange_50"
@@ -65,7 +82,7 @@
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.521"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:track="@drawable/track_selector" />
 

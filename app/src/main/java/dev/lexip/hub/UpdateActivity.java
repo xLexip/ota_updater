@@ -12,6 +12,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -79,6 +80,22 @@ public class UpdateActivity extends AppCompatActivity {
                         ((TextView) findViewById(R.id.tvRomName)).setText(mFirebaseRemoteConfig.getString("rom_name"));
                         ((TextView) findViewById(R.id.tvMaintenanceType)).setText(mFirebaseRemoteConfig.getString("maintenance_type"));
                         ((TextView) findViewById(R.id.tvVersion)).setText(mFirebaseRemoteConfig.getString("latest_rom_version_title"));
+
+                        // Footer
+                        String appVersionName = "";
+                        try {appVersionName = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
+                        } catch (PackageManager.NameNotFoundException e) { e.printStackTrace();}
+                        ((TextView) findViewById(R.id.tvAppVersion)).setText("v"+ appVersionName+"  -  lexip.dev/hub");
+                        ((TextView) findViewById(R.id.tvAppVersion)).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                Intent intent = new Intent(UpdateActivity.this, WebActivity.class);
+                                Bundle b = new Bundle();
+                                b.putString("url", "https://lexip.dev/hub");
+                                intent.putExtras(b);
+                                startActivity(intent);
+                            }
+                        });
                     }
                 });
 

@@ -58,7 +58,19 @@ public class MainActivity extends AppCompatActivity {
         try {appVersionName = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
         } catch (PackageManager.NameNotFoundException e) { e.printStackTrace();}
 
-        ((TextView) findViewById(R.id.tvAppVersion)).setText("v"+ appVersionName+"  -  github.com/xLexip/ota_updater");
+        // Footer
+        ((TextView) findViewById(R.id.tvAppVersion)).setText("v"+ appVersionName+"  -  lexip.dev/hub");
+        ((TextView) findViewById(R.id.tvAppVersion)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, WebActivity.class);
+                Bundle b = new Bundle();
+                b.putString("url", "https://lexip.dev/hub");
+                intent.putExtras(b);
+                startActivity(intent);
+            }
+        });
+
         loadConfig(true);
     }
 
