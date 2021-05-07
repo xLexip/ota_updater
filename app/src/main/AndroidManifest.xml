@@ -49,7 +49,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <!-- Accepts URIs that begin with "http://xlexip.github.io/hub” -->
                 <data android:scheme="http"
-                    android:host="xlexip.github.io"
+                    android:host="lexip.dev"
                     android:pathPrefix="/hub/launch" />
             </intent-filter>
         </activity>

@@ -216,6 +216,12 @@ public class MainActivity extends AppCompatActivity {
                                     b.putString("url", mFirebaseRemoteConfig.getString("helpbtn1_url"));
                                     intent.putExtras(b);
                                     startActivity(intent);
+                                } else if(mFirebaseRemoteConfig.getString("helpbtn1_url").contains("lexip.dev")) {
+                                    Intent intent = new Intent(MainActivity.this, WebActivity.class);
+                                    Bundle b = new Bundle();
+                                    b.putString("url", mFirebaseRemoteConfig.getString("helpbtn1_url"));
+                                    intent.putExtras(b);
+                                    startActivity(intent);
                                 } else {
                                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("helpbtn1_url"))));
                                 }
@@ -224,6 +230,12 @@ public class MainActivity extends AppCompatActivity {
                         ((Button) findViewById(R.id.btnInfoTwo)).setOnClickListener(new View.OnClickListener() {
                             public void onClick(View v) {
                                 if(mFirebaseRemoteConfig.getString("helpbtn2_url").contains("telegra.ph")) {
+                                    Intent intent = new Intent(MainActivity.this, WebActivity.class);
+                                    Bundle b = new Bundle();
+                                    b.putString("url", mFirebaseRemoteConfig.getString("helpbtn2_url"));
+                                    intent.putExtras(b);
+                                    startActivity(intent);
+                                } else if(mFirebaseRemoteConfig.getString("helpbtn2_url").contains("lexip.dev")) {
                                     Intent intent = new Intent(MainActivity.this, WebActivity.class);
                                     Bundle b = new Bundle();
                                     b.putString("url", mFirebaseRemoteConfig.getString("helpbtn2_url"));
@@ -242,6 +254,12 @@ public class MainActivity extends AppCompatActivity {
                                     b.putString("url", mFirebaseRemoteConfig.getString("helpbtn3_url"));
                                     intent.putExtras(b);
                                     startActivity(intent);
+                                } else if(mFirebaseRemoteConfig.getString("helpbtn3_url").contains("lexip.dev")) {
+                                    Intent intent = new Intent(MainActivity.this, WebActivity.class);
+                                    Bundle b = new Bundle();
+                                    b.putString("url", mFirebaseRemoteConfig.getString("helpbtn3_url"));
+                                    intent.putExtras(b);
+                                    startActivity(intent);
                                 } else {
                                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("helpbtn3_url"))));
                                 }
@@ -250,6 +268,12 @@ public class MainActivity extends AppCompatActivity {
                         ((Button) findViewById(R.id.btnInfoFour)).setOnClickListener(new View.OnClickListener() {
                             public void onClick(View v) {
                                 if(mFirebaseRemoteConfig.getString("helpbtn4_url").contains("telegra.ph")) {
+                                    Intent intent = new Intent(MainActivity.this, WebActivity.class);
+                                    Bundle b = new Bundle();
+                                    b.putString("url", mFirebaseRemoteConfig.getString("helpbtn4_url"));
+                                    intent.putExtras(b);
+                                    startActivity(intent);
+                                } else if(mFirebaseRemoteConfig.getString("helpbtn4_url").contains("lexip.dev")) {
                                     Intent intent = new Intent(MainActivity.this, WebActivity.class);
                                     Bundle b = new Bundle();
                                     b.putString("url", mFirebaseRemoteConfig.getString("helpbtn4_url"));
