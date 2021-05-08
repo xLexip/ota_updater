@@ -293,14 +293,8 @@ public class UpdateActivity extends AppCompatActivity {
      */
     public void flash() {
         try {
-            // Verify rom package
-            if(!downloads.isEmpty()){
-                Log.w(context.getClassLoader().toString(),"Reached flash() while downloading. Abroting...");
-                cancelUpdatingProcess();
-                return;
-            }
             if(!String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) && !String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))){
-                Log.w(context.getClassLoader().toString(),"ROM Package corrupted");
+                Log.w("Flash","ROM Package corrupted");
                 cancelUpdatingProcess();
                 return;
             }
@@ -324,9 +318,9 @@ public class UpdateActivity extends AppCompatActivity {
                     pm.reboot("recovery");
                 }
             }.start();
-        } catch (IOException e) {
+        } catch (IOException | NullPointerException e) {
             e.printStackTrace();
-            Log.i(context.getClassLoader().toString(), "Update failed", e);
+            Log.i("Flash", "Update failed", e);
         }
     }
 
