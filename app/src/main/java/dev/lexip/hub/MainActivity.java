@@ -86,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
                 } catch (InterruptedException e) {}
                 while(true) {
                     if (!getNetworkState() && findViewById(R.id.clSplitScreen).getVisibility() == View.GONE) {
-                        finish();
                         startActivity(getIntent());
                     }
                     try {
@@ -95,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
                     if (getNetworkState() && findViewById(R.id.clSplitScreen).getVisibility() == View.VISIBLE) {
                         finish();
                         startActivity(getIntent());
+                        System.exit(0);
                     }
                 }
             }
