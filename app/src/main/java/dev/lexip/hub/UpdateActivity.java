@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
-import android.app.AlarmManager;
 import android.app.DownloadManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -13,6 +12,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -73,6 +73,22 @@ public class UpdateActivity extends AppCompatActivity {
                         ((TextView) findViewById(R.id.tvRomName)).setText(mFirebaseRemoteConfig.getString("rom_name"));
                         ((TextView) findViewById(R.id.tvMaintenanceType)).setText(mFirebaseRemoteConfig.getString("maintenance_type"));
                         ((TextView) findViewById(R.id.tvVersion)).setText(mFirebaseRemoteConfig.getString("latest_rom_version_title"));
+
+                        // Footer
+                        String appVersionName = "";
+                        try {appVersionName = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
+                        } catch (PackageManager.NameNotFoundException e) { e.printStackTrace();}
+                        ((TextView) findViewById(R.id.tvAppVersion)).setText("v"+ appVersionName+"  -  lexip.dev/hub");
+                        ((TextView) findViewById(R.id.tvAppVersion)).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                Intent intent = new Intent(UpdateActivity.this, WebActivity.class);
+                                Bundle b = new Bundle();
+                                b.putString("url", "https://lexip.dev/hub");
+                                intent.putExtras(b);
+                                startActivity(intent);
+                            }
+                        });
                     }
                 });
 
@@ -116,8 +132,11 @@ public class UpdateActivity extends AppCompatActivity {
         });
 
         // Check if the update package was already downloaded
-        if(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").exists()) {
-            if (String.valueOf(new File("/sdcard/" + Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) || String.valueOf(new File(Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))) {
+        if(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").exists() && new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").exists()) {
+            if (!downloads.isEmpty()) {
+                ((Button) findViewById(R.id.btnFlash)).setText("CANCEL UPDATE");
+            }
+            else if (String.valueOf(new File("/sdcard/" + Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) || String.valueOf(new File(Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))) {
                 ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
                 ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
                 Toast.makeText((Context) UpdateActivity.this, "Download completed and verified.",
@@ -156,19 +175,8 @@ public class UpdateActivity extends AppCompatActivity {
                     flash();
                     return;
                 } else if (((Button) findViewById(R.id.btnFlash)).getText().equals("CANCEL UPDATE")) {
-                    // Cancel Downloads
-                    while (!downloads.isEmpty()) {
-                        downloadmanager.remove(((long) downloads.pop()));
-                    }
-                    deleteDirectory(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub"));
-
-                    // Restart the app
-                    Intent mStartActivity = new Intent(context, MainActivity.class);
-                    int mPendingIntentId = 123456;
-                    PendingIntent mPendingIntent = PendingIntent.getActivity(context, mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
-                    AlarmManager mgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-                    mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
-                    System.exit(0);
+                    cancelUpdatingProcess();
+                    Log.i("Update Activity","Update aborted by user.");
                     return;
                 }
 
@@ -187,6 +195,9 @@ public class UpdateActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onBackPressed () { }
+
     public void downloadUpdateFiles() {
         new Thread() {
             public void run() {
@@ -200,43 +211,49 @@ public class UpdateActivity extends AppCompatActivity {
                     public void run() {
                         UpdateActivity.this.runOnUiThread(new Runnable() {
                             public void run() {
-                                Toast.makeText((Context) UpdateActivity.this, "Downloading...",
-                                        Toast.LENGTH_LONG).show();
                                 ((Button) findViewById(R.id.btnFlash)).setText("CANCEL UPDATE");
                             }
                         });
                     }
                 }.start();
 
+
+                int[] downloadedFiles = {0};
+                int neededDownloads = 1;
+
                 // Already downloaded?
                 if(!String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) && !String.valueOf(new File(Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))){
                     deleteDirectory(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub"));
+                    neededDownloads = 2;
+                    downloadFile(mFirebaseRemoteConfig.getString("magisk_url"), "magisk.zip", true);
                     downloadFile(updateURL, mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip", false);
                 } else {
-                    Toast.makeText((Context) UpdateActivity.this, "Verifying package...",
-                            Toast.LENGTH_LONG).show();
                     if (new File(Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").exists())
                         new File(Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").delete();
-                    downloadFile(mFirebaseRemoteConfig.getString("magisk_url"), "magisk.zip", true);
+                    downloadFile(mFirebaseRemoteConfig.getString("magisk_url"), "magisk.zip", false);
                 }
+
+                int finalNeededDownloads = neededDownloads;
 
                 receiver = new BroadcastReceiver() {
                     @Override
                     public void onReceive(Context context, Intent intent) {
                         String action = intent.getAction();
                         if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
-                            if (!new File(Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").exists())
-                                    downloadFile(mFirebaseRemoteConfig.getString("magisk_url"), "magisk.zip", true);
-                            unregisterReceiver(receiver);
 
-                            // Verify package
+                            downloadedFiles[0] += 1;
+                            if(downloadedFiles[0]< finalNeededDownloads)
+                                return;
+
                             if(!String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) && !String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))) {
-                                Toast.makeText((Context) UpdateActivity.this, "Package corrupted. Re-downloading...",
-                                        Toast.LENGTH_LONG).show();
-                                deleteDirectory(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub"));
-                                downloadUpdateFiles();
+                                Log.w(context.getClassLoader().toString(),"ROM Package corrupted");
+                                cancelUpdatingProcess();
+                                downloadedFiles[0] = 0;
                                 return;
                             }
+
+                            // Purge all download objects
+                            downloads.clear();
 
                             intent = new Intent(context, UpdateActivity.class);
                             intent.putExtra("flash", true);
@@ -260,7 +277,7 @@ public class UpdateActivity extends AppCompatActivity {
 
                             UpdateActivity.this.runOnUiThread(new Runnable() {
                                 public void run() {
-                                    ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
+                                    findViewById(R.id.btnFlash).setVisibility(View.VISIBLE);
                                     ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
                                 }
                             });
@@ -279,9 +296,9 @@ public class UpdateActivity extends AppCompatActivity {
      */
     public void flash() {
         try {
-            // Verify rom package
             if(!String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) && !String.valueOf(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))){
-                downloadUpdateFiles();
+                Log.w("Flash","ROM Package corrupted");
+                cancelUpdatingProcess();
                 return;
             }
 
@@ -292,30 +309,21 @@ public class UpdateActivity extends AppCompatActivity {
             FileWriter myWriter = new FileWriter("/cache/recovery/command");
             myWriter.write("boot-recovery\n--update_package=" + Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip\n");
             refreshConfig();
-            if (config.contains("flash_magisk=true"))
+            if (config.contains("flash_magisk=true") && new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").exists())
                 myWriter.write("--update_package=" + Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip\n");
             myWriter.write("--wipe_cache\nreboot");
             myWriter.close();
 
             new Thread() {
                 public void run() {
-
-                    // Clarify that this is no factory reset as claimed by the android system
-                    UpdateActivity.this.runOnUiThread(new Runnable() {
-                        public void run() {
-                            Toast.makeText((Context)UpdateActivity .this,"This is NOT a factory reset!",
-                                    Toast.LENGTH_LONG).show();
-                            try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
-                        }
-                    });
-
                     // Reboot to recovery
                     PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
                     pm.reboot("recovery");
                 }
             }.start();
-        } catch (IOException e) {
-            Log.i("UpdateActivity", "Update failed", e);
+        } catch (IOException | NullPointerException e) {
+            e.printStackTrace();
+            Log.i("Flash", "Update failed", e);
         }
     }
 
@@ -382,5 +390,24 @@ public class UpdateActivity extends AppCompatActivity {
             }
         }
         return dir.delete();
+    }
+
+    public void cancelUpdatingProcess(){
+        Log.i(context.getClassLoader().toString(),"Canceling the update process...");
+
+        // Cancel Downloads
+        while (!downloads.isEmpty()) {
+            downloadmanager.remove(((long) downloads.pop()));
+        }
+
+        // Delete all files
+        deleteDirectory(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub"));
+
+        // Update UI
+        UpdateActivity.this.runOnUiThread(new Runnable() {
+            public void run() {
+                ((Button) findViewById(R.id.btnFlash)).setText("INSTALL UPDATE");
+            }
+        });
     }
 }

@@ -22,7 +22,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.BuildConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
@@ -59,7 +58,19 @@ public class MainActivity extends AppCompatActivity {
         try {appVersionName = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
         } catch (PackageManager.NameNotFoundException e) { e.printStackTrace();}
 
-        ((TextView) findViewById(R.id.tvAppVersion)).setText("v"+ appVersionName+"  -  github.com/xLexip/ota_updater");
+        // Footer
+        ((TextView) findViewById(R.id.tvAppVersion)).setText("v"+ appVersionName+"  -  lexip.dev/hub");
+        ((TextView) findViewById(R.id.tvAppVersion)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, WebActivity.class);
+                Bundle b = new Bundle();
+                b.putString("url", "https://lexip.dev/hub");
+                intent.putExtras(b);
+                startActivity(intent);
+            }
+        });
+
         loadConfig(true);
     }
 
@@ -75,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
                 } catch (InterruptedException e) {}
                 while(true) {
                     if (!getNetworkState() && findViewById(R.id.clSplitScreen).getVisibility() == View.GONE) {
-                        finish();
                         startActivity(getIntent());
                     }
                     try {
@@ -84,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
                     if (getNetworkState() && findViewById(R.id.clSplitScreen).getVisibility() == View.VISIBLE) {
                         finish();
                         startActivity(getIntent());
+                        System.exit(0);
                     }
                 }
             }
@@ -163,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
                                 public void onClick(View v) {
                                     Intent intent = new Intent(MainActivity.this, UpdateActivity.class);
                                     startActivity(intent);
+                                    finish();
                                 }
                             });
 
@@ -216,6 +228,12 @@ public class MainActivity extends AppCompatActivity {
                                     b.putString("url", mFirebaseRemoteConfig.getString("helpbtn1_url"));
                                     intent.putExtras(b);
                                     startActivity(intent);
+                                } else if(mFirebaseRemoteConfig.getString("helpbtn1_url").contains("lexip.dev")) {
+                                    Intent intent = new Intent(MainActivity.this, WebActivity.class);
+                                    Bundle b = new Bundle();
+                                    b.putString("url", mFirebaseRemoteConfig.getString("helpbtn1_url"));
+                                    intent.putExtras(b);
+                                    startActivity(intent);
                                 } else {
                                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("helpbtn1_url"))));
                                 }
@@ -224,6 +242,12 @@ public class MainActivity extends AppCompatActivity {
                         ((Button) findViewById(R.id.btnInfoTwo)).setOnClickListener(new View.OnClickListener() {
                             public void onClick(View v) {
                                 if(mFirebaseRemoteConfig.getString("helpbtn2_url").contains("telegra.ph")) {
+                                    Intent intent = new Intent(MainActivity.this, WebActivity.class);
+                                    Bundle b = new Bundle();
+                                    b.putString("url", mFirebaseRemoteConfig.getString("helpbtn2_url"));
+                                    intent.putExtras(b);
+                                    startActivity(intent);
+                                } else if(mFirebaseRemoteConfig.getString("helpbtn2_url").contains("lexip.dev")) {
                                     Intent intent = new Intent(MainActivity.this, WebActivity.class);
                                     Bundle b = new Bundle();
                                     b.putString("url", mFirebaseRemoteConfig.getString("helpbtn2_url"));
@@ -242,6 +266,12 @@ public class MainActivity extends AppCompatActivity {
                                     b.putString("url", mFirebaseRemoteConfig.getString("helpbtn3_url"));
                                     intent.putExtras(b);
                                     startActivity(intent);
+                                } else if(mFirebaseRemoteConfig.getString("helpbtn3_url").contains("lexip.dev")) {
+                                    Intent intent = new Intent(MainActivity.this, WebActivity.class);
+                                    Bundle b = new Bundle();
+                                    b.putString("url", mFirebaseRemoteConfig.getString("helpbtn3_url"));
+                                    intent.putExtras(b);
+                                    startActivity(intent);
                                 } else {
                                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mFirebaseRemoteConfig.getString("helpbtn3_url"))));
                                 }
@@ -250,6 +280,12 @@ public class MainActivity extends AppCompatActivity {
                         ((Button) findViewById(R.id.btnInfoFour)).setOnClickListener(new View.OnClickListener() {
                             public void onClick(View v) {
                                 if(mFirebaseRemoteConfig.getString("helpbtn4_url").contains("telegra.ph")) {
+                                    Intent intent = new Intent(MainActivity.this, WebActivity.class);
+                                    Bundle b = new Bundle();
+                                    b.putString("url", mFirebaseRemoteConfig.getString("helpbtn4_url"));
+                                    intent.putExtras(b);
+                                    startActivity(intent);
+                                } else if(mFirebaseRemoteConfig.getString("helpbtn4_url").contains("lexip.dev")) {
                                     Intent intent = new Intent(MainActivity.this, WebActivity.class);
                                     Bundle b = new Bundle();
                                     b.putString("url", mFirebaseRemoteConfig.getString("helpbtn4_url"));
