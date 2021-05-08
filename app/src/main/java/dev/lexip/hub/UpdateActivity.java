@@ -252,6 +252,9 @@ public class UpdateActivity extends AppCompatActivity {
                                 return;
                             }
 
+                            // Purge all download objects
+                            downloads.clear();
+
                             intent = new Intent(context, UpdateActivity.class);
                             intent.putExtra("flash", true);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
