@@ -136,10 +136,10 @@ public class UpdateActivity extends AppCompatActivity {
         // Check if the update package was already downloaded and if the download is still running
         try {
             new FileInputStream(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip"));
-            if(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").exists() && new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").exists() &&  !((Button) findViewById(R.id.btnFlash)).getText().equals("CANCEL UPDATE")) {
+            if(new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").exists() && new File("/sdcard/"+Environment.DIRECTORY_DOWNLOADS + "/hub/magisk.zip").exists() &&  !((Button) findViewById(R.id.btnFlash)).getText().equals("CANCEL DOWNLOAD")) {
                 if (String.valueOf(new File("/sdcard/" + Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("dumpling_bytes")) || String.valueOf(new File(Environment.DIRECTORY_DOWNLOADS + "/hub/" + mFirebaseRemoteConfig.getString("latest_rom_version") + ".zip").length()).equals(mFirebaseRemoteConfig.getString("cheeseburger_bytes"))) {
                     ((Button) findViewById(R.id.btnFlash)).setVisibility(View.VISIBLE);
-                    ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
+                    ((Button) findViewById(R.id.btnFlash)).setText("INSTALL AND REBOOT");
                     Toast.makeText((Context) UpdateActivity.this, "Ready to install.",
                             Toast.LENGTH_LONG).show();
                 }
@@ -151,7 +151,7 @@ public class UpdateActivity extends AppCompatActivity {
                     public void run() {
                         UpdateActivity.this.runOnUiThread(new Runnable() {
                             public void run() {
-                                ((Button) findViewById(R.id.btnFlash)).setText("CANCEL UPDATE");
+                                ((Button) findViewById(R.id.btnFlash)).setText("CANCEL DOWNLOAD");
                                 Toast.makeText((Context) UpdateActivity.this, "Downloading...",
                                         Toast.LENGTH_LONG).show();
                             }
@@ -187,10 +187,10 @@ public class UpdateActivity extends AppCompatActivity {
         ((Button) findViewById(R.id.btnFlash)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (((Button) findViewById(R.id.btnFlash)).getText().equals("REBOOT NOW")) {
+                if (((Button) findViewById(R.id.btnFlash)).getText().equals("INSTALL AND REBOOT")) {
                     flash();
                     return;
-                } else if (((Button) findViewById(R.id.btnFlash)).getText().equals("CANCEL UPDATE")) {
+                } else if (((Button) findViewById(R.id.btnFlash)).getText().equals("CANCEL DOWNLOAD")) {
                     cancelUpdatingProcess();
                     Log.i("Update Activity","Update aborted by user.");
                     return;
@@ -227,7 +227,7 @@ public class UpdateActivity extends AppCompatActivity {
                     public void run() {
                         UpdateActivity.this.runOnUiThread(new Runnable() {
                             public void run() {
-                                ((Button) findViewById(R.id.btnFlash)).setText("CANCEL UPDATE");
+                                ((Button) findViewById(R.id.btnFlash)).setText("CANCEL DOWNLOAD");
                             }
                         });
                     }
@@ -269,7 +269,7 @@ public class UpdateActivity extends AppCompatActivity {
                                 public void run() {
                                     UpdateActivity.this.runOnUiThread(new Runnable() {
                                         public void run() {
-                                            ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
+                                            ((Button) findViewById(R.id.btnFlash)).setText("INSTALL AND REBOOT");
                                         }
                                     });
                                 }
@@ -301,7 +301,7 @@ public class UpdateActivity extends AppCompatActivity {
                             UpdateActivity.this.runOnUiThread(new Runnable() {
                                 public void run() {
                                     findViewById(R.id.btnFlash).setVisibility(View.VISIBLE);
-                                    ((Button) findViewById(R.id.btnFlash)).setText("REBOOT NOW");
+                                    ((Button) findViewById(R.id.btnFlash)).setText("INSTALL AND REBOOT");
                                 }
                             });
                         }
@@ -429,7 +429,7 @@ public class UpdateActivity extends AppCompatActivity {
         // Update UI
         UpdateActivity.this.runOnUiThread(new Runnable() {
             public void run() {
-                ((Button) findViewById(R.id.btnFlash)).setText("INSTALL UPDATE");
+                ((Button) findViewById(R.id.btnFlash)).setText("DOWNLOAD UPDATE");
             }
         });
     }
