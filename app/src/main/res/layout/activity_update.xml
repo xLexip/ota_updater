@@ -50,7 +50,7 @@
         android:backgroundTint="@color/button"
         android:fontFamily="@font/montserrat"
         android:foregroundTint="@color/text"
-        android:text="INSTALL UPDATE"
+        android:text="DOWNLOAD UPDATE"
         android:textAllCaps="true"
         android:textColor="@color/text"
         android:textSize="13sp"
